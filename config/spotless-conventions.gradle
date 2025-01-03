@@ -1,0 +1,97 @@
+/*
+* Copyright (c) 2025 Rahul Anishetty
+*
+* This program is dual-licensed under either AGPL-3.0 or a commercial license.
+* For commercial licensing options, please contact the author.
+* For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
+*/
+import java.time.Year
+
+def LICENSE_HEADER = '''/*
+* Copyright (c) $YEAR Rahul Anishetty
+*
+* This program is dual-licensed under either AGPL-3.0 or a commercial license.
+* For commercial licensing options, please contact the author.
+* For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
+*/
+'''.stripIndent()
+
+spotless {
+	// Common configuration
+	encoding 'UTF-8'
+
+	format 'misc', {
+		targetExclude 'build/**', 'out/**', '**/generated/**'
+		// Remove trailing whitespace, ensure newline at end of file
+		target '*.md', '*.json', '*.properties', '*.yml', '*.yaml'
+		trimTrailingWhitespace()
+		endWithNewline()
+	}
+
+	if (project.plugins.hasPlugin('java')) {
+		java {
+			// Don't enforce formatting on generated files
+			targetExclude 'build/**', 'out/**', '**/generated/**'
+
+			// Use Google Java Format
+			googleJavaFormat('1.25.2')
+
+			// Remove unused imports
+			removeUnusedImports()
+
+			// Sort imports
+			importOrder('java', 'javax', 'org', 'com', '')
+
+			// Custom rules
+			custom 'No leading spaces before line comments', { it.replace(' //', '//') }
+
+			// License header
+			licenseHeader LICENSE_HEADER
+		}
+	}
+
+	if (project.plugins.hasPlugin('groovy')) {
+		groovy {
+			targetExclude 'build/**', 'out/**', '**/generated/**'
+			importOrder('java', 'javax', 'org', 'com', '')
+			greclipse()  // Use Groovy Eclipse formatter
+
+			licenseHeader LICENSE_HEADER
+		}
+	}
+
+	groovyGradle {
+		targetExclude 'build/**', 'out/**', '**/generated/**'
+		target '**/*.gradle', '**/*.groovy'
+		greclipse()
+		licenseHeader LICENSE_HEADER, "(^(?![/\\s]*\\*).*\$)"
+	}
+}
+
+plugins.withType(JavaPlugin).configureEach {
+	// Add a task to check formatting before tests
+	tasks.named('test') {
+		dependsOn 'spotlessCheck'
+	}
+}
+
+// Only configure check task if it exists
+plugins.withId('base') {
+	tasks.named('check') {
+		dependsOn 'spotlessCheck'
+	}
+}
+
+tasks.register('updateCopyright') {
+	doLast {
+		def year = Year.now()
+		ant.replaceregexp(match: 'Copyright \\(C\\) \\d{4}',
+		replace: "Copyright (C) ${year}",
+		flags: 'g') {
+			fileset(dir: projectDir) {
+				include('**/*.java', '**/*.groovy')
+				exclude('build/**','out/**', '**/generated/**')
+			}
+		}
+	}
+}

@@ -96,10 +96,10 @@ We welcome contributions! Follow these steps to contribute:
 ## License
 The **Universal Process Orchestrator (UPO)** is dual-licensed under:
 
-1. **GNU Affero General Public License v3.0 (AGPL-3.0)**:  
+1. **GNU Affero General Public License v3.0 (AGPL-3.0)**:
    You may use this software under the terms of the AGPL-3.0 license. A copy of the license is available [here](LICENSE.txt).
 
-2. **Proprietary License**:  
+2. **Proprietary License**:
    For enterprises or use cases that cannot comply with AGPL-3.0 obligations (e.g., sharing source code for modifications or SaaS deployments), a commercial license is available.
 
 ### Obtaining a Commercial License
