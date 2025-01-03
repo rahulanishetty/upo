@@ -11,3 +11,16 @@ plugins {
 }
 
 rootProject.name = 'upo'
+
+def includeProjects(File rootDir) {
+    rootDir.eachDirRecurse { dir ->
+        if (new File(dir, 'build.gradle').exists() && !new File(dir, 'settings.gradle').exists()) {
+            def relativePath = rootDir.toURI().relativize(dir.toURI()).toString()
+            def rewrittenName = ':' + relativePath.replaceAll('/$', '').replace('/', '-')
+            include rewrittenName
+            project(rewrittenName).projectDir = dir
+        }
+    }
+}
+
+includeProjects(file('./'))

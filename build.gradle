@@ -1,0 +1,10 @@
+import com.upo.buildlogic.Constants;
+
+allprojects {
+    group = Constants.GROUP
+    version = Constants.VERSION
+
+    repositories {
+        mavenCentral()
+    }
+}
