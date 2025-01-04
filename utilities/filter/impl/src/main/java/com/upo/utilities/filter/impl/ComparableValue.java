@@ -14,4 +14,5 @@ package com.upo.utilities.filter.impl;
  *
  * @param <Value> the type of the wrapped comparable value
  */
-public interface ComparableValue<Value> extends Comparable<ComparableValue<Value>> {}
+public interface ComparableValue<Value extends Comparable<Value>>
+    extends Comparable<ComparableValue<Value>> {}

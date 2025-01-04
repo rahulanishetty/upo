@@ -59,6 +59,6 @@ public class ComparisonFilterBuilder implements FilterBuilder {
       Collection<ComparableValue<?>> values,
       ComparableValue compareValue,
       Predicate<Integer> comparator) {
-    return values.stream().anyMatch(value -> comparator.test(compareValue.compareTo(value)));
+    return values.stream().anyMatch(value -> comparator.test(value.compareTo(compareValue)));
   }
 }
