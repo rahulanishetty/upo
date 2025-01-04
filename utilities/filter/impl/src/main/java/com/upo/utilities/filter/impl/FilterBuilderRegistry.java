@@ -10,7 +10,7 @@ package com.upo.utilities.filter.impl;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.upo.utilities.filter.api.Filter;
+import com.upo.utilities.filter.api.*;
 import com.upo.utilities.filter.impl.builders.*;
 
 /**
@@ -28,40 +28,45 @@ public class FilterBuilderRegistry {
 
    // Equality filters (EQUALS, IN)
     EqualityFilterBuilder equalityBuilder = new EqualityFilterBuilder();
-    specializedBuilders.put("EQUALS", equalityBuilder);
-    specializedBuilders.put("IN", equalityBuilder);
+    specializedBuilders.put(EqualsFilter.TYPE, equalityBuilder);
+    specializedBuilders.put(InFilter.TYPE, equalityBuilder);
 
    // Comparison filters (GT, LT, GTE, LTE)
     ComparisonFilterBuilder comparisonBuilder = new ComparisonFilterBuilder();
-    specializedBuilders.put("GT", comparisonBuilder);
-    specializedBuilders.put("LT", comparisonBuilder);
-    specializedBuilders.put("GTE", comparisonBuilder);
-    specializedBuilders.put("LTE", comparisonBuilder);
+    specializedBuilders.put(GreaterThanFilter.TYPE, comparisonBuilder);
+    specializedBuilders.put(LessThanFilter.TYPE, comparisonBuilder);
+    specializedBuilders.put(GreaterThanEqualsFilter.TYPE, comparisonBuilder);
+    specializedBuilders.put(LessThanEqualsFilter.TYPE, comparisonBuilder);
 
    // Add Range filter builder
     RangeFilterBuilder rangeBuilder = new RangeFilterBuilder();
-    specializedBuilders.put("RANGE", rangeBuilder);
+    specializedBuilders.put(RangeFilter.TYPE, rangeBuilder);
 
    // Text match filters (REGEX, IREGEX, CONTAINS, ICONTAINS)
     TextMatchFilterBuilder textMatchBuilder = new TextMatchFilterBuilder();
-    specializedBuilders.put("REGEX", textMatchBuilder);
-    specializedBuilders.put("IREGEX", textMatchBuilder);
-    specializedBuilders.put("CONTAINS", textMatchBuilder);
-    specializedBuilders.put("ICONTAINS", textMatchBuilder);
+    specializedBuilders.put(RegexFilter.TYPE, textMatchBuilder);
+    specializedBuilders.put(InsensitiveRegexFilter.TYPE, textMatchBuilder);
+    specializedBuilders.put(ContainsFilter.TYPE, textMatchBuilder);
+    specializedBuilders.put(InsensitiveContainsFilter.TYPE, textMatchBuilder);
 
    // Existence filters (EXISTS, MISSING)
     ExistenceFilterBuilder existenceBuilder = new ExistenceFilterBuilder();
-    specializedBuilders.put("EXISTS", existenceBuilder);
-    specializedBuilders.put("MISSING", existenceBuilder);
+    specializedBuilders.put(ExistsFilter.TYPE, existenceBuilder);
+    specializedBuilders.put(MissingFilter.TYPE, existenceBuilder);
+
+   // Add Match filter builder
+    MatchFilterBuilder matchBuilder = new MatchFilterBuilder();
+    specializedBuilders.put(MatchAllFilter.TYPE, matchBuilder);
+    specializedBuilders.put(MatchNoneFilter.TYPE, matchBuilder);
 
    // Initialize logical builder with all specialized builders
     LogicalFilterBuilder logicalBuilder = new LogicalFilterBuilder(specializedBuilders);
 
    // Add logical operators to the main builder map
     this.builders = new HashMap<>(specializedBuilders);
-    this.builders.put("AND", logicalBuilder);
-    this.builders.put("OR", logicalBuilder);
-    this.builders.put("NOT", logicalBuilder);
+    this.builders.put(AndFilter.TYPE, logicalBuilder);
+    this.builders.put(OrFilter.TYPE, logicalBuilder);
+    this.builders.put(NotFilter.TYPE, logicalBuilder);
   }
 
   /**
@@ -84,6 +89,9 @@ public class FilterBuilderRegistry {
    */
   public <Type> FilterEvaluator<Type> buildEvaluator(Filter filter, FilterContext<Type> context) {
     Filter rewrittenFilter = rewrite(filter, context);
+    if (rewrittenFilter == null) {
+      return type -> false;
+    }
     FilterBuilder builder = builders.get(rewrittenFilter.getType());
     if (builder == null) {
       throw new IllegalArgumentException("No builder found for filter type: " + filter.getType());
@@ -100,6 +108,12 @@ public class FilterBuilderRegistry {
    * @return the rewritten filter
    */
   private Filter rewrite(Filter filter, FilterContext<?> context) {
+    if (filter == null) {
+      return null;
+    }
+    if (context == null) {
+      throw new IllegalArgumentException("Context cannot be null");
+    }
     FilterBuilder builder = builders.get(filter.getType());
     if (builder == null) {
       throw new IllegalArgumentException("No builder found for filter type: " + filter.getType());

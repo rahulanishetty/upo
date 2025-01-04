@@ -9,7 +9,7 @@ package com.upo.utilities.filter.impl.builders;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 import com.upo.utilities.filter.api.AndFilter;
 import com.upo.utilities.filter.api.Filter;
@@ -103,7 +103,13 @@ public class LogicalFilterBuilder implements FilterBuilder {
    */
   private <Type> List<FilterEvaluator<Type>> buildChildEvaluators(
       List<Filter> filters, FilterContext<Type> context) {
-    return filters.stream().map(f -> buildChildEvaluator(f, context)).collect(Collectors.toList());
+    if (filters == null || filters.isEmpty()) {
+      throw new IllegalArgumentException("Filter list cannot be null or empty");
+    }
+    return filters.stream()
+        .filter(Objects::nonNull)
+        .map(f -> buildChildEvaluator(f, context))
+        .toList();
   }
 
   /**

@@ -50,20 +50,15 @@ public class ComparisonFilterBuilder implements FilterBuilder {
    * @param values the collection of field values to compare
    * @param compareValue the value to compare against
    * @param comparator predicate that defines the comparison logic
-   * @param <T> the type of values being compared
    * @return true if any field value satisfies the comparison condition
    * @implNote Uses raw types and suppresses warnings due to generic type erasure in comparisons.
    *     This is necessary because the actual comparable types are not known at runtime.
    */
   @SuppressWarnings({"unchecked", "rawtypes"})
-  private <T> boolean evaluateComparison(
+  private boolean evaluateComparison(
       Collection<ComparableValue<?>> values,
       ComparableValue compareValue,
       Predicate<Integer> comparator) {
-    return values.stream()
-        .anyMatch(
-            value -> {
-              return comparator.test(compareValue.compareTo(value));
-            });
+    return values.stream().anyMatch(value -> comparator.test(compareValue.compareTo(value)));
   }
 }
