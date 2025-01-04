@@ -9,12 +9,14 @@ package com.upo.utilities.filter.api;
 
 /** Less than comparison filter. */
 public class LessThanFilter extends ComparisonFilter {
+  public static final String TYPE = "LT";
+
   public LessThanFilter(String field, Comparable<?> value) {
     super(field, value);
   }
 
   @Override
   public String getType() {
-    return "LT";
+    return TYPE;
   }
 }

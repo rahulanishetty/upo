@@ -9,12 +9,14 @@ package com.upo.utilities.filter.api;
 
 /** Case-sensitive substring containment filter. */
 public class ContainsFilter extends TextMatchFilter {
+  public static final String TYPE = "CONTAINS";
+
   public ContainsFilter(String field, String pattern) {
     super(field, pattern);
   }
 
   @Override
   public String getType() {
-    return "CONTAINS";
+    return TYPE;
   }
 }

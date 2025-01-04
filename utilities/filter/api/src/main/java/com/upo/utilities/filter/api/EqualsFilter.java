@@ -9,6 +9,7 @@ package com.upo.utilities.filter.api;
 
 /** A filter that checks for exact equality between values. */
 public class EqualsFilter implements Filter {
+  public static final String TYPE = "EQUALS";
 
   private final String field;
   private final Object value;
@@ -20,7 +21,7 @@ public class EqualsFilter implements Filter {
 
   @Override
   public String getType() {
-    return "EQUALS";
+    return TYPE;
   }
 
   public String getField() {

@@ -9,6 +9,7 @@ package com.upo.utilities.filter.api;
 
 /** Logical NOT operation on a filter. */
 public class NotFilter implements Filter {
+  public static final String TYPE = "NOT";
   private final Filter filter;
 
   public NotFilter(Filter filter) {
@@ -17,7 +18,7 @@ public class NotFilter implements Filter {
 
   @Override
   public String getType() {
-    return "NOT";
+    return TYPE;
   }
 
   public Filter getFilter() {

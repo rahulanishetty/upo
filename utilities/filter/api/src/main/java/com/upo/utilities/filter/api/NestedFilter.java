@@ -21,6 +21,7 @@ import java.util.List;
  * conditions match on the same array element.
  */
 public class NestedFilter implements Filter {
+  public static final String TYPE = "NESTED";
   private final String arrayField;// field containing the array
   private final List<Filter> filters;// filters to apply on array elements
 
@@ -31,7 +32,7 @@ public class NestedFilter implements Filter {
 
   @Override
   public String getType() {
-    return "NESTED";
+    return TYPE;
   }
 
   public String getArrayField() {

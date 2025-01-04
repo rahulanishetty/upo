@@ -9,12 +9,14 @@ package com.upo.utilities.filter.api;
 
 /** Case-insensitive regular expression matching filter. */
 public class InsensitiveRegexFilter extends TextMatchFilter {
+  public static final String TYPE = "IREGEX";
+
   public InsensitiveRegexFilter(String field, String pattern) {
     super(field, pattern);
   }
 
   @Override
   public String getType() {
-    return "IREGEX";
+    return TYPE;
   }
 }

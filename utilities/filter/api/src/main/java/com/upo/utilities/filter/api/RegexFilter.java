@@ -9,12 +9,14 @@ package com.upo.utilities.filter.api;
 
 /** Regular expression matching filter (case sensitive). */
 public class RegexFilter extends TextMatchFilter {
+  public static final String TYPE = "REGEX";
+
   public RegexFilter(String field, String pattern) {
     super(field, pattern);
   }
 
   @Override
   public String getType() {
-    return "REGEX";
+    return TYPE;
   }
 }

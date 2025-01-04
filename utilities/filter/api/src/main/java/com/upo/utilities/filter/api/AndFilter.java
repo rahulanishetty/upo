@@ -11,6 +11,8 @@ import java.util.List;
 
 /** Logical AND combination of multiple filters. */
 public class AndFilter implements Filter {
+  public static final String TYPE = "AND";
+
   private final List<Filter> filters;
 
   public AndFilter(List<Filter> filters) {
@@ -19,7 +21,7 @@ public class AndFilter implements Filter {
 
   @Override
   public String getType() {
-    return "AND";
+    return TYPE;
   }
 
   public List<Filter> getFilters() {

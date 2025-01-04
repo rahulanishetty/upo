@@ -11,6 +11,7 @@ import java.util.List;
 
 /** Logical OR combination of multiple filters. */
 public class OrFilter implements Filter {
+  public static final String TYPE = "OR";
   private final List<Filter> filters;
 
   public OrFilter(List<Filter> filters) {
@@ -19,7 +20,7 @@ public class OrFilter implements Filter {
 
   @Override
   public String getType() {
-    return "OR";
+    return TYPE;
   }
 
   public List<Filter> getFilters() {

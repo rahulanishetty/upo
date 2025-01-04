@@ -7,16 +7,21 @@
 */
 package com.upo.utilities.filter.api;
 
-/** Less than or equal comparison filter. */
-public class LessThanEqualsFilter extends ComparisonFilter {
-  public static final String TYPE = "LTE";
+/** Filter that checks if a field exists (has non-null value) in a record. */
+public class ExistsFilter implements Filter {
+  public static final String TYPE = "EXISTS";
+  private final String field;
 
-  public LessThanEqualsFilter(String field, Comparable<?> value) {
-    super(field, value);
+  public ExistsFilter(String field) {
+    this.field = field;
   }
 
   @Override
   public String getType() {
     return TYPE;
+  }
+
+  public String getField() {
+    return field;
   }
 }

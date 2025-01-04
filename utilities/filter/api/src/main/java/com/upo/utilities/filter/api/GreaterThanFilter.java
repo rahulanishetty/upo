@@ -9,12 +9,14 @@ package com.upo.utilities.filter.api;
 
 /** Greater than comparison filter. */
 public class GreaterThanFilter extends ComparisonFilter {
+  public static final String TYPE = "GT";
+
   public GreaterThanFilter(String field, Comparable<?> value) {
     super(field, value);
   }
 
   @Override
   public String getType() {
-    return "GT";
+    return TYPE;
   }
 }

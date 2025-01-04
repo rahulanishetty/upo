@@ -11,6 +11,7 @@ import java.util.Collection;
 
 /** A filter that checks if a value exists in a collection. */
 public class InFilter implements Filter {
+  public static final String TYPE = "IN";
 
   private final String field;
   private final Collection<?> values;
@@ -22,7 +23,7 @@ public class InFilter implements Filter {
 
   @Override
   public String getType() {
-    return "IN";
+    return TYPE;
   }
 
   public String getField() {
