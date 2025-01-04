@@ -6,5 +6,10 @@
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
 plugins {
-	id 'buildlogic.java-library-conventions'
+	id 'buildlogic.java-api-conventions'
+}
+
+
+dependencies {
+	implementation project(':utilities-filter-api')
 }
