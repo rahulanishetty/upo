@@ -24,46 +24,47 @@ public class FilterBuilderRegistry {
 
   public FilterBuilderRegistry() {
    // Initialize specialized builders
-    Map<String, FilterBuilder> specializedBuilders = new HashMap<>();
+    this.builders = new HashMap<>();
 
    // Equality filters (EQUALS, IN)
     EqualityFilterBuilder equalityBuilder = new EqualityFilterBuilder();
-    specializedBuilders.put(EqualsFilter.TYPE, equalityBuilder);
-    specializedBuilders.put(InFilter.TYPE, equalityBuilder);
+    this.builders.put(EqualsFilter.TYPE, equalityBuilder);
+    this.builders.put(InFilter.TYPE, equalityBuilder);
 
    // Comparison filters (GT, LT, GTE, LTE)
     ComparisonFilterBuilder comparisonBuilder = new ComparisonFilterBuilder();
-    specializedBuilders.put(GreaterThanFilter.TYPE, comparisonBuilder);
-    specializedBuilders.put(LessThanFilter.TYPE, comparisonBuilder);
-    specializedBuilders.put(GreaterThanEqualsFilter.TYPE, comparisonBuilder);
-    specializedBuilders.put(LessThanEqualsFilter.TYPE, comparisonBuilder);
+    this.builders.put(GreaterThanFilter.TYPE, comparisonBuilder);
+    this.builders.put(LessThanFilter.TYPE, comparisonBuilder);
+    this.builders.put(GreaterThanEqualsFilter.TYPE, comparisonBuilder);
+    this.builders.put(LessThanEqualsFilter.TYPE, comparisonBuilder);
 
    // Add Range filter builder
     RangeFilterBuilder rangeBuilder = new RangeFilterBuilder();
-    specializedBuilders.put(RangeFilter.TYPE, rangeBuilder);
+    this.builders.put(RangeFilter.TYPE, rangeBuilder);
 
    // Text match filters (REGEX, IREGEX, CONTAINS, ICONTAINS)
     TextMatchFilterBuilder textMatchBuilder = new TextMatchFilterBuilder();
-    specializedBuilders.put(RegexFilter.TYPE, textMatchBuilder);
-    specializedBuilders.put(InsensitiveRegexFilter.TYPE, textMatchBuilder);
-    specializedBuilders.put(ContainsFilter.TYPE, textMatchBuilder);
-    specializedBuilders.put(InsensitiveContainsFilter.TYPE, textMatchBuilder);
+    this.builders.put(RegexFilter.TYPE, textMatchBuilder);
+    this.builders.put(InsensitiveRegexFilter.TYPE, textMatchBuilder);
+    this.builders.put(ContainsFilter.TYPE, textMatchBuilder);
+    this.builders.put(InsensitiveContainsFilter.TYPE, textMatchBuilder);
 
    // Existence filters (EXISTS, MISSING)
     ExistenceFilterBuilder existenceBuilder = new ExistenceFilterBuilder();
-    specializedBuilders.put(ExistsFilter.TYPE, existenceBuilder);
-    specializedBuilders.put(MissingFilter.TYPE, existenceBuilder);
+    this.builders.put(ExistsFilter.TYPE, existenceBuilder);
+    this.builders.put(MissingFilter.TYPE, existenceBuilder);
 
    // Add Match filter builder
     MatchFilterBuilder matchBuilder = new MatchFilterBuilder();
-    specializedBuilders.put(MatchAllFilter.TYPE, matchBuilder);
-    specializedBuilders.put(MatchNoneFilter.TYPE, matchBuilder);
+    this.builders.put(MatchAllFilter.TYPE, matchBuilder);
+    this.builders.put(MatchNoneFilter.TYPE, matchBuilder);
 
-   // Initialize logical builder with all specialized builders
-    LogicalFilterBuilder logicalBuilder = new LogicalFilterBuilder(specializedBuilders);
+   // Initialize Nested builder with all builders
+    NestedFilterBuilder nestedFilterBuilder = new NestedFilterBuilder(this.builders);
+    this.builders.put(NestedFilter.TYPE, nestedFilterBuilder);
 
-   // Add logical operators to the main builder map
-    this.builders = new HashMap<>(specializedBuilders);
+   // Initialize logical builder with all builders
+    LogicalFilterBuilder logicalBuilder = new LogicalFilterBuilder(this.builders);
     this.builders.put(AndFilter.TYPE, logicalBuilder);
     this.builders.put(OrFilter.TYPE, logicalBuilder);
     this.builders.put(NotFilter.TYPE, logicalBuilder);
@@ -76,6 +77,10 @@ public class FilterBuilderRegistry {
    */
   public static FilterBuilderRegistry getInstance() {
     return INSTANCE;
+  }
+
+  public static FilterBuilder getFilterBuilder(String type) {
+    return INSTANCE.builders.get(type);
   }
 
   /**

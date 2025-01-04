@@ -24,6 +24,42 @@ public class TestHelpers {
     }
   }
 
+  public static class TestNestedField<Type> implements NestedField<Type> {
+    private final String fieldName;
+
+    public TestNestedField(String fieldName) {
+      this.fieldName = fieldName;
+    }
+
+    @Override
+    public ComparableValue<?> toComparable(Object value) {
+      throw new IllegalArgumentException("this shouldn't be called");
+    }
+
+    @Override
+    public <InnerType> Collection<InnerType> resolveInnerObjects(Type value) {
+      if (!(value instanceof TestRecord)) {
+        throw new IllegalArgumentException("Expected TestRecord");
+      }
+      Object fieldValue = ((TestRecord) value).get(fieldName);
+      if (fieldValue == null) {
+        return Collections.emptyList();
+      }
+      if (fieldValue instanceof Collection<?> collection) {
+       //noinspection unchecked
+        return (Collection<InnerType>) collection;
+      }
+     //noinspection unchecked
+      return (Collection<InnerType>) Collections.singletonList(fieldValue);
+    }
+
+    @Override
+    public <InnerType> FilterContext<InnerType> getInnerContext(FilterContext<Type> filterContext) {
+     //noinspection unchecked
+      return (FilterContext<InnerType>) filterContext;
+    }
+  }
+
   public static class TestField<Type> implements Field<Type> {
     private final String fieldName;
 
@@ -90,6 +126,16 @@ public class TestHelpers {
     @Override
     public Field<Type> resolveField(String field) {
       return new TestField<>(field);
+    }
+  }
+
+  public static class TestWithNestedFilterContext<Type> extends TestFilterContext<Type> {
+    @Override
+    public Field<Type> resolveField(String field) {
+      if (Objects.equals("items", field)) {
+        return new TestNestedField<>(field);
+      }
+      return super.resolveField(field);
     }
   }
 }
