@@ -28,7 +28,28 @@ spotless {
 		endWithNewline()
 	}
 
-	if (project.plugins.hasPlugin('java')) {
+	groovyGradle {
+		targetExclude 'build/**', 'out/**', '**/generated/**'
+		target '**/*.gradle', '**/*.groovy'
+		greclipse()
+		licenseHeader LICENSE_HEADER, "(^(?![/\\s]*\\*).*\$)"
+	}
+}
+
+plugins.withType(GroovyPlugin).configureEach {
+	spotless {
+		groovy {
+			targetExclude 'build/**', 'out/**', '**/generated/**'
+			importOrder('java', 'javax', 'org', 'com', '')
+			greclipse()  // Use Groovy Eclipse formatter
+
+			licenseHeader LICENSE_HEADER
+		}
+	}
+}
+
+plugins.withType(JavaPlugin).configureEach {
+	spotless {
 		java {
 			// Don't enforce formatting on generated files
 			targetExclude 'build/**', 'out/**', '**/generated/**'
@@ -50,25 +71,6 @@ spotless {
 		}
 	}
 
-	if (project.plugins.hasPlugin('groovy')) {
-		groovy {
-			targetExclude 'build/**', 'out/**', '**/generated/**'
-			importOrder('java', 'javax', 'org', 'com', '')
-			greclipse()  // Use Groovy Eclipse formatter
-
-			licenseHeader LICENSE_HEADER
-		}
-	}
-
-	groovyGradle {
-		targetExclude 'build/**', 'out/**', '**/generated/**'
-		target '**/*.gradle', '**/*.groovy'
-		greclipse()
-		licenseHeader LICENSE_HEADER, "(^(?![/\\s]*\\*).*\$)"
-	}
-}
-
-plugins.withType(JavaPlugin).configureEach {
 	// Add a task to check formatting before tests
 	tasks.named('test') {
 		dependsOn 'spotlessCheck'
@@ -76,21 +78,23 @@ plugins.withType(JavaPlugin).configureEach {
 }
 
 // Only configure check task if it exists
-plugins.withId('base') {
+plugins.withType(BasePlugin).configureEach {
 	tasks.named('check') {
 		dependsOn 'spotlessCheck'
 	}
 }
 
-tasks.register('updateCopyright') {
-	doLast {
-		def year = Year.now()
-		ant.replaceregexp(match: 'Copyright \\(C\\) \\d{4}',
-		replace: "Copyright (C) ${year}",
-		flags: 'g') {
-			fileset(dir: projectDir) {
-				include('**/*.java', '**/*.groovy')
-				exclude('build/**','out/**', '**/generated/**')
+if (project == rootProject) {
+	tasks.register('updateCopyright') {
+		doLast {
+			def year = Year.now()
+			ant.replaceregexp(match: 'Copyright \\(C\\) \\d{4}',
+			replace: "Copyright (C) ${year}",
+			flags: 'g') {
+				fileset(dir: projectDir) {
+					include('**/*.java', '**/*.groovy')
+					exclude('build/**','out/**', '**/generated/**')
+				}
 			}
 		}
 	}

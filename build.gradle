@@ -5,7 +5,7 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-import com.upo.buildlogic.Constants;
+import com.upo.buildlogic.Constants
 
 plugins {
 	id 'com.diffplug.spotless' version '6.25.0' apply false

@@ -13,14 +13,22 @@ plugins {
 rootProject.name = 'upo'
 
 def includeProjects(File rootDir) {
-	rootDir.eachDirRecurse { dir ->
-		if (new File(dir, 'build.gradle').exists() && !new File(dir, 'settings.gradle').exists()) {
-			def relativePath = rootDir.toURI().relativize(dir.toURI()).toString()
-			def rewrittenName = ':' + relativePath.replaceAll('/$', '').replace('/', '-')
-			include rewrittenName
-			project(rewrittenName).projectDir = dir
-		}
-	}
+	rootDir.traverse(
+			type: groovy.io.FileType.DIRECTORIES,
+			preDir: { File dir ->
+				// Return false to skip directory
+				if (dir.name in ['src', 'test', 'build']) {
+					return false
+				}
+				// Check for build.gradle and include if found
+				if (new File(dir, 'build.gradle').exists() && !new File(dir, 'settings.gradle').exists()) {
+					def relativePath = rootDir.toURI().relativize(dir.toURI()).toString()
+					def rewrittenName = ':' + relativePath.replaceAll('/$', '').replace('/', '-')
+					include rewrittenName
+					project(rewrittenName).projectDir = dir
+				}
+				return true  // Continue traversing
+			})
 }
 
 includeProjects(file('./'))
