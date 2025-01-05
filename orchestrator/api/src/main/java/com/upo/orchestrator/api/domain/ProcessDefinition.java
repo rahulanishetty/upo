@@ -9,6 +9,8 @@ package com.upo.orchestrator.api.domain;
 
 import java.util.Map;
 
+import com.upo.utilities.filter.api.Filter;
+
 /**
  * Represents a complete process definition in the orchestration system. A process is a directed
  * graph of tasks connected by transitions, defining a workflow that can be executed by the
@@ -48,4 +50,21 @@ public interface ProcessDefinition {
    * @return map of task IDs to their definitions
    */
   Map<String, TaskDefinition> getTaskDefinitions();
+
+  /**
+   * Returns the predicate that determines whether this process should be executed. The process
+   * execution follows these rules: - If predicate is null, process executes normally - If predicate
+   * evaluates to true, process executes normally - If predicate evaluates to false, process is
+   * skipped
+   *
+   * <p>This can be used to control process execution based on: - Configuration settings - Runtime
+   * conditions - System state - External triggers - Business rules
+   *
+   * <p>Example uses: - Skip process if feature flag is disabled - Execute process only in certain
+   * environments - Run process based on schedule or time window - Control process based on system
+   * load or resources - Execute process based on business conditions
+   *
+   * @return the process execution predicate, null if process should always execute
+   */
+  Filter getPredicate();
 }

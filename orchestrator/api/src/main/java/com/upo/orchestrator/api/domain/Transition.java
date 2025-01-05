@@ -34,11 +34,11 @@ public interface Transition {
   String getNextTaskId();
 
   /**
-   * Returns the condition that determines whether this transition should be taken. The filter
+   * Returns the predicate that determines whether this transition should be taken. The filter
    * evaluates runtime data to decide if the transition is valid. For unconditional transitions,
    * this might return null or a filter that always returns true.
    *
-   * @return the filter condition for this transition
+   * @return the filter predicate for this transition
    */
-  Filter getCondition();
+  Filter getPredicate();
 }
