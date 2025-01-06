@@ -5,12 +5,12 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-plugins {
-	id 'buildlogic.java-library-conventions'
-}
+package com.upo.orchestrator.engine;
 
-dependencies {
-	implementation project(':utilities-filter-impl')
-	implementation project(':utilities-filter-api')
-	implementation project(':orchestrator-api')
+public enum ExecutionStrategy {
+  /** Single JVM execution with in-memory storage */
+  LOCAL,
+
+  /** Distributed execution */
+  DISTRIBUTED,
 }
