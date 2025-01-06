@@ -7,6 +7,8 @@
 */
 package com.upo.orchestrator.api.domain;
 
+import java.util.Optional;
+
 import com.upo.utilities.filter.api.Filter;
 
 /**
@@ -18,12 +20,12 @@ public interface Transition {
 
   /**
    * Returns the type of transition, indicating how the process should flow. Common types might
-   * include "default", "conditional", "parallel", or "error". The type influences how the
-   * orchestrator handles the transition during execution.
+   * include "DEFAULT", "CONDITIONAL" or "ERROR". The type influences how the orchestrator handles
+   * the transition during execution.
    *
-   * @return the transition type identifier
+   * @return the transition type
    */
-  String getType();
+  TransitionType getType();
 
   /**
    * Returns the ID of the task that should be executed when this transition is taken. This creates
@@ -40,5 +42,5 @@ public interface Transition {
    *
    * @return the filter predicate for this transition
    */
-  Filter getPredicate();
+  Optional<Filter> getPredicate();
 }

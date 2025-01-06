@@ -8,6 +8,7 @@
 package com.upo.orchestrator.api.domain;
 
 import java.util.Map;
+import java.util.Optional;
 
 import com.upo.utilities.filter.api.Filter;
 
@@ -66,5 +67,5 @@ public interface ProcessDefinition {
    *
    * @return the process execution predicate, null if process should always execute
    */
-  Filter getPredicate();
+  Optional<Filter> getPredicate();
 }

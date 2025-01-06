@@ -9,6 +9,7 @@ package com.upo.orchestrator.api.domain;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.upo.utilities.filter.api.Filter;
 
@@ -41,6 +42,14 @@ public interface TaskDefinition {
   String getScopeId();
 
   /**
+   * Returns configuration details needed to construct and execute this task at runtime.
+   * Configuration details vary based on task type and operator
+   *
+   * @return configuration map for task runtime construction
+   */
+  TaskConfiguration getConfiguration();
+
+  /**
    * Returns the JSON Schema definition for task inputs. The schema follows JSON Schema latest
    * specification and defines: - Required input fields - Data types and formats - Validation rules
    * and constraints - Nested object structures
@@ -64,6 +73,11 @@ public interface TaskDefinition {
    * @return JSON Schema definition for task outputs
    */
   Map<String, Object> getOutputSchema();
+
+  /**
+   * @return JSON Schema definition for task errors
+   */
+  Map<String, Object> getErrorSchema();
 
   /**
    * Returns the operator type of this task. The operator determines how this task affects process
@@ -111,5 +125,5 @@ public interface TaskDefinition {
    *
    * @return the execution predicate, null if task should always execute
    */
-  Filter getPredicate();
+  Optional<Filter> getPredicate();
 }
