@@ -8,11 +8,3 @@
 plugins {
 	id 'buildlogic.java-library-conventions'
 }
-
-dependencies {
-	implementation project(':utilities-filter-impl')
-	implementation project(':utilities-filter-api')
-	implementation project(':utilities-json')
-	implementation project(':utilities-ulid')
-	implementation project(':orchestrator-api')
-}

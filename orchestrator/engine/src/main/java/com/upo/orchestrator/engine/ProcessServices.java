@@ -57,4 +57,9 @@ public interface ProcessServices {
    * @return execution lifecycle auditor service
    */
   ExecutionLifecycleAuditor getLifecycleAuditor();
+
+  /**
+   * @return environment provider service
+   */
+  EnvironmentProvider getEnvironmentProvider();
 }

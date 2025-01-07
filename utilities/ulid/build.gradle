@@ -10,9 +10,5 @@ plugins {
 }
 
 dependencies {
-	implementation project(':utilities-filter-impl')
-	implementation project(':utilities-filter-api')
-	implementation project(':utilities-json')
-	implementation project(':utilities-ulid')
-	implementation project(':orchestrator-api')
+	implementation 'com.github.f4b6a3:ulid-creator:5.2.3'
 }

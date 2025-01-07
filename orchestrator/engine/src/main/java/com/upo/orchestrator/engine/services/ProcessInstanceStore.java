@@ -7,6 +7,7 @@
 */
 package com.upo.orchestrator.engine.services;
 
+import com.upo.orchestrator.engine.ExecutionResult;
 import com.upo.orchestrator.engine.ProcessInstance;
 
 /**
@@ -25,11 +26,19 @@ public interface ProcessInstanceStore {
   boolean save(ProcessInstance processInstance);
 
   /**
-   * Retrieves a process instance by its identifier. Returns the complete process instance with its
-   * current state including environment and variables.
+   * Retrieves a process instance by its identifier.
    *
    * @param id unique identifier of the process instance
    * @return the process instance if found, null otherwise
    */
   ProcessInstance findById(String id);
+
+  /**
+   * Retrieves a process instance by its identifier if in expected status.
+   *
+   * @param id unique identifier of the process instance
+   * @param expectedStatus expectedStatus of the process instance
+   * @return the process instance if found, null otherwise
+   */
+  ProcessInstance findById(String id, ExecutionResult.Status expectedStatus);
 }

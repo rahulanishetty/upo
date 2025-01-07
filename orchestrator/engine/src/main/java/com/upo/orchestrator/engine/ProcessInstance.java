@@ -25,8 +25,14 @@ public class ProcessInstance {
   /** ID of the process definition being executed. */
   private String processId;
 
-  /** ID of the process runtime executing this instance. */
-  private String processRuntimeId;
+  /** ID of the process snapshot executing this instance. */
+  private String processSnapshotId;
+
+  /** version of the process executing this instance. */
+  private String processVersion;
+
+  /** execution strategy used for this instance */
+  private String executionStrategy;
 
   /**
    * Optional task ID where process execution should terminate. Used to execute subset of process or
@@ -93,12 +99,28 @@ public class ProcessInstance {
     this.processId = processId;
   }
 
-  public String getProcessRuntimeId() {
-    return processRuntimeId;
+  public String getProcessSnapshotId() {
+    return processSnapshotId;
   }
 
-  public void setProcessRuntimeId(String processRuntimeId) {
-    this.processRuntimeId = processRuntimeId;
+  public void setProcessSnapshotId(String processRuntimeId) {
+    this.processSnapshotId = processRuntimeId;
+  }
+
+  public String getProcessVersion() {
+    return processVersion;
+  }
+
+  public void setProcessVersion(String processVersion) {
+    this.processVersion = processVersion;
+  }
+
+  public String getExecutionStrategy() {
+    return executionStrategy;
+  }
+
+  public void setExecutionStrategy(String executionStrategy) {
+    this.executionStrategy = executionStrategy;
   }
 
   public String getTerminateAtTaskId() {

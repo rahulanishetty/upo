@@ -57,6 +57,6 @@ public interface TaskRuntime {
      *
      * @return list of next task IDs, empty if no transition
      */
-    List<String> taskIds();
+    List<Transition> transitions();
   }
 }
