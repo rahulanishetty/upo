@@ -144,8 +144,9 @@ public class ProcessExecutorImpl implements ProcessExecutor {
     processInstance.setProcessVersion(details.getSnapshotVersion());
     processInstance.setExecutionStrategy(strategy.name());
 
-    processInstance.setProcessEnv(createProcessEnv());
-    processInstance.setVariables(createVariables());
+    ProcessEnv processEnv = createProcessEnv();
+    processInstance.setProcessEnv(processEnv);
+    processInstance.setVariables(createVariables(processEnv));
     ProcessInstanceStore instanceStore = processServices.getInstanceStore();
     if (!instanceStore.save(processInstance)) {
       return null;
@@ -153,8 +154,18 @@ public class ProcessExecutorImpl implements ProcessExecutor {
     return processInstance;
   }
 
-  private Variables createVariables() {
-    throw new UnsupportedOperationException("TODO implement variables!");
+  /**
+   * Creates a new Variables instance initialized with process environment data. Maps environment
+   * variables, context, and session data making them available for resolution in JsonPath
+   * expressions during task execution.
+   *
+   * @param processEnv process environment containing initial variables
+   * @return initialized Variables instance with process environment data
+   */
+  private Variables createVariables(ProcessEnv processEnv) {
+    VariablesImpl variables = new VariablesImpl();
+    variables.addProcessEnvVariables(processEnv);
+    return variables;
   }
 
   /**

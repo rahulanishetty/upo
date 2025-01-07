@@ -10,8 +10,8 @@ package com.upo.orchestrator.engine.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.Variables;
+import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.utilities.json.path.JsonPath;
 
 /**
@@ -56,7 +56,7 @@ public class CompositeVariableView implements Variables {
   }
 
   @Override
-  public List<Variable> getNewVariables() {
+  public List<ProcessVariable> getNewVariables() {
     throw new UnsupportedOperationException("not supported!");
   }
 

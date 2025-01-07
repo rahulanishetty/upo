@@ -9,6 +9,7 @@ package com.upo.orchestrator.engine;
 
 import java.util.List;
 
+import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.utilities.json.path.JsonPath;
 
 /**
@@ -69,7 +70,7 @@ public interface Variables {
    *
    * @return list of newly created variables
    */
-  List<Variable> getNewVariables();
+  List<ProcessVariable> getNewVariables();
 
   /**
    * Retrieves variable data for a specific task and type.
