@@ -5,9 +5,11 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-package com.upo.orchestrator.engine;
+package com.upo.orchestrator.engine.models;
 
 import java.util.Map;
+
+import com.upo.orchestrator.engine.ProcessServices;
 
 /**
  * Represents the environment in which processes execute. Provides access to environment variables,

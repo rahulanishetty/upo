@@ -11,6 +11,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.orchestrator.engine.models.Signal;
+
 /**
  * Runtime representation of a task that handles its execution lifecycle. This interface provides
  * methods for executing tasks and handling signals during task execution. Each task type (HTTP,

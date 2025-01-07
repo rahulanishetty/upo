@@ -5,7 +5,9 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-package com.upo.orchestrator.engine;
+package com.upo.orchestrator.engine.models;
+
+import com.upo.orchestrator.engine.Variables;
 
 /**
  * Represents a single execution of a process. Maintains the state and context of process execution

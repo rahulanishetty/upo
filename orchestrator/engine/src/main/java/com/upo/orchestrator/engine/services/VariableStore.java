@@ -10,8 +10,8 @@ package com.upo.orchestrator.engine.services;
 import java.util.Collection;
 import java.util.List;
 
-import com.upo.orchestrator.engine.ProcessInstance;
 import com.upo.orchestrator.engine.Variable;
+import com.upo.orchestrator.engine.models.ProcessInstance;
 
 /**
  * Store interface for persisting and retrieving process variables. Manages the storage of variables

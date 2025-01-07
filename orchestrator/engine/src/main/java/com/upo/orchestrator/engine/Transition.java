@@ -10,6 +10,7 @@ package com.upo.orchestrator.engine;
 import java.util.Optional;
 
 import com.upo.orchestrator.api.domain.TransitionType;
+import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.utilities.filter.impl.FilterEvaluator;
 
 public interface Transition {

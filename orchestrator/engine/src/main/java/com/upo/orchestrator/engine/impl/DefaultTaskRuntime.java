@@ -10,6 +10,8 @@ package com.upo.orchestrator.engine.impl;
 import java.util.Map;
 
 import com.upo.orchestrator.engine.*;
+import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.orchestrator.engine.models.Signal;
 import com.upo.utilities.filter.impl.FilterEvaluator;
 
 public abstract class DefaultTaskRuntime implements TaskRuntime {

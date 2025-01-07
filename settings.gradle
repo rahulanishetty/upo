@@ -26,6 +26,7 @@ def includeProjects(File rootDir) {
 					def rewrittenName = ':' + relativePath.replaceAll('/$', '').replace('/', '-')
 					include rewrittenName
 					project(rewrittenName).projectDir = dir
+					println("including project: " + rewrittenName + ", for directory: " + dir.toString())
 				}
 				return true  // Continue traversing
 			})

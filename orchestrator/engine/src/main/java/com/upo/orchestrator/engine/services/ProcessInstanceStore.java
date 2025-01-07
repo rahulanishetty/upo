@@ -8,7 +8,7 @@
 package com.upo.orchestrator.engine.services;
 
 import com.upo.orchestrator.engine.ExecutionResult;
-import com.upo.orchestrator.engine.ProcessInstance;
+import com.upo.orchestrator.engine.models.ProcessInstance;
 
 /**
  * Store interface for persisting and retrieving process instances. Provides operations to manage

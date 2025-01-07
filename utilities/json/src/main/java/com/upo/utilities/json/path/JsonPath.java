@@ -5,10 +5,13 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-plugins {
-	id 'buildlogic.java-library-conventions'
-}
+package com.upo.utilities.json.path;
 
-dependencies {
-	implementation 'com.alibaba.fastjson2:fastjson2:2.0.53'
+public interface JsonPath {
+
+  Object read(Object object);
+
+  static JsonPath create(String path) {
+    return new DotNotationJsonPath(path);
+  }
 }

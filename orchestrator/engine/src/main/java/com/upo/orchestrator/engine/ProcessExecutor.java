@@ -9,6 +9,8 @@ package com.upo.orchestrator.engine;
 
 import java.util.Map;
 
+import com.upo.orchestrator.engine.models.Signal;
+
 /** Handles actual process execution using specified strategy */
 public interface ProcessExecutor {
   /** Returns the execution services for this executor */

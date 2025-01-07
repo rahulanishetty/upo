@@ -9,9 +9,9 @@ package com.upo.orchestrator.engine.services;
 
 import java.util.Collection;
 
-import com.upo.orchestrator.engine.ProcessInstance;
 import com.upo.orchestrator.engine.TaskRuntime;
 import com.upo.orchestrator.engine.Variable;
+import com.upo.orchestrator.engine.models.ProcessInstance;
 
 /**
  * Audits the execution lifecycle of tasks within a process. Captures execution events, state
