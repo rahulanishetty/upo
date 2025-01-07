@@ -10,48 +10,49 @@ package com.upo.orchestrator.engine.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.upo.orchestrator.engine.Variables;
+import com.upo.orchestrator.engine.Variable;
+import com.upo.orchestrator.engine.VariableContainer;
 import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.utilities.json.path.JsonPath;
 
 /**
- * Provides a read-only view over multiple Variables instances. Used for variable lookup during
- * evaluation and resolution, where write operations are not needed. Searches through multiple
- * Variables instances in order until a matching variable is found.
+ * Provides a read-only view over multiple VariableContainer instances. Used for variable lookup
+ * during evaluation and resolution, where write operations are not needed. Searches through
+ * multiple Variables instances in order until a matching variable is found.
  *
  * <p>This class implements the Variables interface but only supports read operations. All write
  * operations throw UnsupportedOperationException.
  */
-public class CompositeVariableView implements Variables {
+public class CompositeVariableView implements VariableContainer {
 
   /**
    * List of Variables instances to search through. Searched in order of addition until a matching
    * variable is found.
    */
-  private final List<Variables> variables;
+  private final List<VariableContainer> containers;
 
   /** Creates a new empty composite view. */
   public CompositeVariableView() {
-    this.variables = new ArrayList<>();
+    this.containers = new ArrayList<>();
   }
 
   /**
-   * Adds a Variables instance to be included in the search. Variables are searched in the order
-   * they are added.
+   * Adds a VariableContainer instance to be included in the search. Variables are searched in the
+   * order they are added.
    *
-   * @param variables Variables instance to include in search
+   * @param variableContainer Variables instance to include in search
    */
-  public void addVariables(Variables variables) {
-    this.variables.add(variables);
+  public void addVariables(VariableContainer variableContainer) {
+    this.containers.add(variableContainer);
   }
 
   @Override
-  public void addNewVariable(String taskId, Type type, Object payload) {
+  public void addNewVariable(String taskId, Variable.Type type, Object payload) {
     throw new UnsupportedOperationException("not supported!");
   }
 
   @Override
-  public void restoreVariable(String taskId, Type type, Object payload) {
+  public void restoreVariable(String taskId, Variable.Type type, Object payload) {
     throw new UnsupportedOperationException("not supported!");
   }
 
@@ -69,9 +70,9 @@ public class CompositeVariableView implements Variables {
    * @return variable payload if found, null otherwise
    */
   @Override
-  public Object getVariable(String taskId, Type type) {
-    for (Variables variable : variables) {
-      Object payload = variable.getVariable(taskId, type);
+  public Object getVariable(String taskId, Variable.Type type) {
+    for (VariableContainer container : containers) {
+      Object payload = container.getVariable(taskId, type);
       if (payload != null) {
         return payload;
       }
@@ -88,8 +89,8 @@ public class CompositeVariableView implements Variables {
    */
   @Override
   public Object readVariable(JsonPath jsonPath) {
-    for (Variables variable : variables) {
-      Object value = jsonPath.read(variable);
+    for (VariableContainer container : containers) {
+      Object value = jsonPath.read(container);
       if (value != null) {
         return value;
       }

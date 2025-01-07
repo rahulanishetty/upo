@@ -146,7 +146,7 @@ public class ProcessExecutorImpl implements ProcessExecutor {
 
     ProcessEnv processEnv = createProcessEnv();
     processInstance.setProcessEnv(processEnv);
-    processInstance.setVariables(createVariables(processEnv));
+    processInstance.setVariableContainer(createVariableContainer(processEnv));
     ProcessInstanceStore instanceStore = processServices.getInstanceStore();
     if (!instanceStore.save(processInstance)) {
       return null;
@@ -155,15 +155,15 @@ public class ProcessExecutorImpl implements ProcessExecutor {
   }
 
   /**
-   * Creates a new Variables instance initialized with process environment data. Maps environment
-   * variables, context, and session data making them available for resolution in JsonPath
-   * expressions during task execution.
+   * Creates a new VariableContainer instance initialized with process environment data. Maps
+   * environment variables, context, and session data making them available for resolution in
+   * JsonPath expressions during task execution.
    *
    * @param processEnv process environment containing initial variables
    * @return initialized Variables instance with process environment data
    */
-  private Variables createVariables(ProcessEnv processEnv) {
-    VariablesImpl variables = new VariablesImpl();
+  private VariableContainer createVariableContainer(ProcessEnv processEnv) {
+    VariableContainerImpl variables = new VariableContainerImpl();
     variables.addProcessEnvVariables(processEnv);
     return variables;
   }

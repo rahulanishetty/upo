@@ -8,12 +8,11 @@
 package com.upo.orchestrator.engine.models;
 
 import com.upo.orchestrator.engine.Variable;
-import com.upo.orchestrator.engine.Variables;
 
 public class ProcessVariable implements Variable {
   private String id;
   private String taskId;
-  private Variables.Type type;
+  private Variable.Type type;
   private Object payload;
 
   public String getId() {
@@ -33,11 +32,11 @@ public class ProcessVariable implements Variable {
   }
 
   @Override
-  public Variables.Type getType() {
+  public Variable.Type getType() {
     return type;
   }
 
-  public void setType(Variables.Type type) {
+  public void setType(Type type) {
     this.type = type;
   }
 

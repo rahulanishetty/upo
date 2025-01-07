@@ -7,7 +7,7 @@
 */
 package com.upo.orchestrator.engine.models;
 
-import com.upo.orchestrator.engine.Variables;
+import com.upo.orchestrator.engine.VariableContainer;
 
 /**
  * Represents a single execution of a process. Maintains the state and context of process execution
@@ -67,7 +67,7 @@ public class ProcessInstance {
   private ProcessEnv processEnv;
 
   /** Variables produced and consumed during process execution. */
-  private Variables variables;
+  private VariableContainer variableContainer;
 
   public String getId() {
     return id;
@@ -197,11 +197,11 @@ public class ProcessInstance {
     this.processEnv = processEnv;
   }
 
-  public Variables getVariables() {
-    return variables;
+  public VariableContainer getVariableContainer() {
+    return variableContainer;
   }
 
-  public void setVariables(Variables variables) {
-    this.variables = variables;
+  public void setVariableContainer(VariableContainer variableContainer) {
+    this.variableContainer = variableContainer;
   }
 }

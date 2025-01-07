@@ -9,18 +9,19 @@ package com.upo.orchestrator.engine.impl;
 
 import java.util.*;
 
-import com.upo.orchestrator.engine.Variables;
+import com.upo.orchestrator.engine.Variable;
+import com.upo.orchestrator.engine.VariableContainer;
 import com.upo.orchestrator.engine.models.ProcessEnv;
 import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.utilities.json.path.JsonPath;
 
-public class VariablesImpl implements Variables {
+public class VariableContainerImpl implements VariableContainer {
 
-  private final Map<String, Map<String, Object>> variablesById;
+  private final Map<String, Map<String, Object>> variables;
   private final List<ProcessVariable> newVariables;
 
-  public VariablesImpl() {
-    this.variablesById = new HashMap<>();
+  public VariableContainerImpl() {
+    this.variables = new HashMap<>();
     this.newVariables = new ArrayList<>();
   }
 
@@ -38,26 +39,25 @@ public class VariablesImpl implements Variables {
    */
   public void addProcessEnvVariables(ProcessEnv processEnv) {
     if (processEnv.getEnv() != null) {
-      this.variablesById.put("env", processEnv.getEnv());
+      this.variables.put("env", processEnv.getEnv());
     }
     if (processEnv.getContext() != null) {
-      this.variablesById.put("ctx", processEnv.getEnv());
+      this.variables.put("ctx", processEnv.getEnv());
     }
     if (processEnv.getSession() != null) {
-      this.variablesById.put("session", processEnv.getEnv());
+      this.variables.put("session", processEnv.getEnv());
     }
   }
 
   @Override
-  public void addNewVariable(String taskId, Type type, Object payload) {
+  public void addNewVariable(String taskId, Variable.Type type, Object payload) {
     restoreVariable(taskId, type, payload);
     addOrUpdateNewVariables(taskId, type, payload);
   }
 
   @Override
-  public void restoreVariable(String taskId, Type type, Object payload) {
-    Map<String, Object> typeAndPayload =
-        variablesById.computeIfAbsent(taskId, t -> new HashMap<>());
+  public void restoreVariable(String taskId, Variable.Type type, Object payload) {
+    Map<String, Object> typeAndPayload = variables.computeIfAbsent(taskId, t -> new HashMap<>());
     typeAndPayload.put(type.name(), payload);
   }
 
@@ -67,8 +67,8 @@ public class VariablesImpl implements Variables {
   }
 
   @Override
-  public Object getVariable(String taskId, Type type) {
-    Map<String, Object> payloadByType = variablesById.get(taskId);
+  public Object getVariable(String taskId, Variable.Type type) {
+    Map<String, Object> payloadByType = variables.get(taskId);
     if (payloadByType == null) {
       return null;
     }
@@ -77,10 +77,10 @@ public class VariablesImpl implements Variables {
 
   @Override
   public Object readVariable(JsonPath jsonPath) {
-    return jsonPath.read(variablesById);
+    return jsonPath.read(variables);
   }
 
-  private void addOrUpdateNewVariables(String taskId, Type type, Object payload) {
+  private void addOrUpdateNewVariables(String taskId, Variable.Type type, Object payload) {
     boolean found = false;
     for (ProcessVariable variable : newVariables) {
       if (Objects.equals(variable.getTaskId(), taskId)
