@@ -56,14 +56,13 @@ public class VariableContainerImpl implements VariableContainer {
 
   @Override
   public void addNewVariable(String taskId, Variable.Type type, Object payload) {
-    restoreVariable(taskId, type, payload);
+    payload = restoreVariableInternal(taskId, type, payload);
     newVariables.put(Pair.of(taskId, type), payload);
   }
 
   @Override
   public void restoreVariable(String taskId, Variable.Type type, Object payload) {
-    Map<String, Object> typeAndPayload = variables.computeIfAbsent(taskId, t -> new HashMap<>());
-    typeAndPayload.put(type.getKey(), payload);
+    restoreVariableInternal(taskId, type, payload);
   }
 
   @Override
@@ -105,6 +104,17 @@ public class VariableContainerImpl implements VariableContainer {
       }
     }
     return jsonPath.read(variables);
+  }
+
+  private Object restoreVariableInternal(String taskId, Variable.Type type, Object payload) {
+    Map<String, Object> typeAndPayload = variables.computeIfAbsent(taskId, t -> new HashMap<>());
+    if (payload instanceof Future<?> future) {
+      if (future.isDone()) {
+        payload = waitForVariable(taskId, type, future);
+      }
+    }
+    typeAndPayload.put(type.getKey(), payload);
+    return payload;
   }
 
   private void ensureResolved(List<ProcessVariable> toResolve) {
@@ -168,11 +178,19 @@ public class VariableContainerImpl implements VariableContainer {
   }
 
   private Object waitForVariable(String taskId, Variable.Type type, Future<?> future) {
+    boolean interrupted = false;
     try {
       return future.get();
     } catch (Exception eX) {
+      if (eX instanceof InterruptedException) {
+        interrupted = true;
+      }
       throw new TaskExecutionException(
           "failed while waiting for variable of task: " + taskId + ", type: " + type, eX);
+    } finally {
+      if (interrupted) {
+        Thread.currentThread().interrupt();
+      }
     }
   }
 }
