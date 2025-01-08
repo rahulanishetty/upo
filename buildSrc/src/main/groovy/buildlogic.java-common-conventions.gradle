@@ -36,7 +36,10 @@ java {
 
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
-	options.compilerArgs += ['-parameters']
+	options.compilerArgs += [
+		'-parameters',
+		'--enable-preview'
+	]
 }
 
 tasks.named('test') {
@@ -45,4 +48,14 @@ tasks.named('test') {
 	testLogging {
 		events 'passed', 'skipped', 'failed'
 	}
+	jvmArgs += [
+		// Enable preview features
+		'--enable-preview',
+		// Set file encoding to UTF-8
+		'-Dfile.encoding=UTF-8',
+		// Set timezone to UTC
+		'-Duser.timezone=UTC',
+		// Virtual thread pinning
+		'-Djdk.tracePinnedThreads=full'
+	]
 }
