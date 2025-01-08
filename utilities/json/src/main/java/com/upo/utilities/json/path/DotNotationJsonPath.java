@@ -50,7 +50,17 @@ public class DotNotationJsonPath implements JsonPath {
     if (index < 0 || index >= sections.size()) {
       return null;
     }
-    return sections.get(index).key;
+    int i = 0;
+    for (ExtractorAndKey section : sections) {
+      if (section.key == null) {
+        continue;
+      }
+      if (i == index) {
+        return section.key;
+      }
+      i++;
+    }
+    return null;
   }
 
   private static List<ExtractorAndKey> createExtractors(String path) {
@@ -144,16 +154,15 @@ public class DotNotationJsonPath implements JsonPath {
 
   private static final class ExtractorAndKey {
     private String key;
-    private Integer index;
     Function<Object, Object> extractor;
 
-    public ExtractorAndKey(String key, Integer index, Function<Object, Object> extractor) {
+    public ExtractorAndKey(String key, Function<Object, Object> extractor) {
       this.key = key;
       this.extractor = extractor;
     }
 
     public static ExtractorAndKey of(String key, Function<Object, Object> extractor) {
-      return new ExtractorAndKey(key, null, extractor);
+      return new ExtractorAndKey(key, extractor);
     }
 
     public String getKey() {
@@ -162,14 +171,6 @@ public class DotNotationJsonPath implements JsonPath {
 
     public void setKey(String key) {
       this.key = key;
-    }
-
-    public Integer getIndex() {
-      return index;
-    }
-
-    public void setIndex(Integer index) {
-      this.index = index;
     }
 
     public Function<Object, Object> getExtractor() {
