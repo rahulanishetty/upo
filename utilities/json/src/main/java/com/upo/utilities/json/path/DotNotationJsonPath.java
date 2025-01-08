@@ -23,18 +23,18 @@ public class DotNotationJsonPath implements JsonPath {
               + "\\[([0-9]+)]"// Standalone array index
           );
 
-  private final List<Function<Object, Object>> extractors;
+  private final List<ExtractorAndKey> sections;
 
   public DotNotationJsonPath(String path) {
-    this.extractors = createExtractors(path);
+    this.sections = createExtractors(path);
   }
 
   @Override
   public Object read(Object object) {
     Object current = object;
     try {
-      for (Function<Object, Object> extractor : extractors) {
-        current = extractor.apply(current);
+      for (var section : sections) {
+        current = section.extractor.apply(current);
         if (current == null) {
           return null;
         }
@@ -45,8 +45,16 @@ public class DotNotationJsonPath implements JsonPath {
     }
   }
 
-  private static List<Function<Object, Object>> createExtractors(String path) {
-    List<Function<Object, Object>> extractors = new ArrayList<>();
+  @Override
+  public String getToken(int index) {
+    if (index < 0 || index >= sections.size()) {
+      return null;
+    }
+    return sections.get(index).key;
+  }
+
+  private static List<ExtractorAndKey> createExtractors(String path) {
+    List<ExtractorAndKey> extractors = new ArrayList<>();
     Matcher matcher = TOKEN_PATTERN.matcher(path);
     int lastEnd = 0;
 
@@ -64,17 +72,20 @@ public class DotNotationJsonPath implements JsonPath {
       String arrayIndex = matcher.group(5);
 
       if (quotedKey != null) {
-        extractors.add(createMapExtractor(quotedKey));
+        extractors.add(ExtractorAndKey.of(quotedKey, createMapExtractor(quotedKey)));
         if (quotedArrayIndex != null) {
-          extractors.add(createArrayExtractor(Integer.parseInt(quotedArrayIndex)));
+          extractors.add(
+              ExtractorAndKey.of(null, createArrayExtractor(Integer.parseInt(quotedArrayIndex))));
         }
       } else if (unquotedKey != null) {
-        extractors.add(createMapExtractor(unquotedKey));
+        extractors.add(ExtractorAndKey.of(unquotedKey, createMapExtractor(unquotedKey)));
         if (unquotedArrayIndex != null) {
-          extractors.add(createArrayExtractor(Integer.parseInt(unquotedArrayIndex)));
+          extractors.add(
+              ExtractorAndKey.of(null, createArrayExtractor(Integer.parseInt(unquotedArrayIndex))));
         }
       } else if (arrayIndex != null) {
-        extractors.add(createArrayExtractor(Integer.parseInt(arrayIndex)));
+        extractors.add(
+            ExtractorAndKey.of(arrayIndex, createArrayExtractor(Integer.parseInt(arrayIndex))));
       }
     }
 
@@ -129,5 +140,44 @@ public class DotNotationJsonPath implements JsonPath {
       return result;
     }
     throw new IllegalArgumentException("Cannot apply key to: " + obj.getClass());
+  }
+
+  private static final class ExtractorAndKey {
+    private String key;
+    private Integer index;
+    Function<Object, Object> extractor;
+
+    public ExtractorAndKey(String key, Integer index, Function<Object, Object> extractor) {
+      this.key = key;
+      this.extractor = extractor;
+    }
+
+    public static ExtractorAndKey of(String key, Function<Object, Object> extractor) {
+      return new ExtractorAndKey(key, null, extractor);
+    }
+
+    public String getKey() {
+      return key;
+    }
+
+    public void setKey(String key) {
+      this.key = key;
+    }
+
+    public Integer getIndex() {
+      return index;
+    }
+
+    public void setIndex(Integer index) {
+      this.index = index;
+    }
+
+    public Function<Object, Object> getExtractor() {
+      return extractor;
+    }
+
+    public void setExtractor(Function<Object, Object> extractor) {
+      this.extractor = extractor;
+    }
   }
 }

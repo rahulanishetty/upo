@@ -61,6 +61,11 @@ public class CompositeVariableView implements VariableContainer {
     throw new UnsupportedOperationException("not supported!");
   }
 
+  @Override
+  public void clearNewVariables() {
+    throw new UnsupportedOperationException("not supported!");
+  }
+
   /**
    * Searches for a variable across all registered Variables instances. Returns the first matching
    * variable found, searching Variables in the order they were added.

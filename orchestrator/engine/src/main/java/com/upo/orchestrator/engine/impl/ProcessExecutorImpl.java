@@ -82,6 +82,7 @@ public class ProcessExecutorImpl implements ProcessExecutor {
       throw new IllegalStateException("ProcessEnv is null, but it shouldn't be!");
     }
     processEnv.setProcessServices(processServices);
+    processInstance.setVariableContainer(createVariableContainer(processEnv));
     return processInstance;
   }
 

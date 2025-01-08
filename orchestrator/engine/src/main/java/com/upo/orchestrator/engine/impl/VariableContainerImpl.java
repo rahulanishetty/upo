@@ -8,21 +8,26 @@
 package com.upo.orchestrator.engine.impl;
 
 import java.util.*;
+import java.util.concurrent.Future;
 
+import com.upo.orchestrator.engine.TaskExecutionException;
 import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.VariableContainer;
 import com.upo.orchestrator.engine.models.ProcessEnv;
 import com.upo.orchestrator.engine.models.ProcessVariable;
+import com.upo.utilities.ds.Pair;
 import com.upo.utilities.json.path.JsonPath;
 
 public class VariableContainerImpl implements VariableContainer {
 
+  private static final Set<String> RESERVED_KEYS = Set.of("env", "ctx", "session");
+
   private final Map<String, Map<String, Object>> variables;
-  private final List<ProcessVariable> newVariables;
+  private final Map<Pair<String, Variable.Type>, Object> newVariables;
 
   public VariableContainerImpl() {
     this.variables = new HashMap<>();
-    this.newVariables = new ArrayList<>();
+    this.newVariables = new HashMap<>();
   }
 
   /**
@@ -52,50 +57,122 @@ public class VariableContainerImpl implements VariableContainer {
   @Override
   public void addNewVariable(String taskId, Variable.Type type, Object payload) {
     restoreVariable(taskId, type, payload);
-    addOrUpdateNewVariables(taskId, type, payload);
+    newVariables.put(Pair.of(taskId, type), payload);
   }
 
   @Override
   public void restoreVariable(String taskId, Variable.Type type, Object payload) {
     Map<String, Object> typeAndPayload = variables.computeIfAbsent(taskId, t -> new HashMap<>());
-    typeAndPayload.put(type.name(), payload);
+    typeAndPayload.put(type.getKey(), payload);
   }
 
   @Override
   public List<ProcessVariable> getNewVariables() {
-    return newVariables;
+    List<ProcessVariable> toResolve = findVariablesToResolve();
+    ensureResolved(toResolve);
+    return newVariables.entrySet().stream()
+        .map(
+            entry -> {
+              ProcessVariable variable = new ProcessVariable();
+              variable.setTaskId(entry.getKey().getFirstElement());
+              variable.setType(entry.getKey().getSecondElement());
+              variable.setPayload(entry.getValue());
+              return variable;
+            })
+        .toList();
+  }
+
+  @Override
+  public void clearNewVariables() {
+    newVariables.clear();
   }
 
   @Override
   public Object getVariable(String taskId, Variable.Type type) {
-    Map<String, Object> payloadByType = variables.get(taskId);
-    if (payloadByType == null) {
-      return null;
-    }
-    return payloadByType.get(type.name());
+    Object payload = getVariableInternal(taskId, type);
+    return ensureResolved(taskId, type, payload);
   }
 
   @Override
   public Object readVariable(JsonPath jsonPath) {
+    String taskId = jsonPath.getToken(0);
+    if (!RESERVED_KEYS.contains(taskId)) {
+      String type = jsonPath.getToken(1);
+      Variable.Type varType = Variable.Type.fromKey(type);
+      Object payload = getVariableInternal(taskId, varType);
+      if (ensureResolved(taskId, varType, payload) == null) {
+        return null;
+      }
+    }
     return jsonPath.read(variables);
   }
 
-  private void addOrUpdateNewVariables(String taskId, Variable.Type type, Object payload) {
-    boolean found = false;
-    for (ProcessVariable variable : newVariables) {
-      if (Objects.equals(variable.getTaskId(), taskId)
-          && Objects.equals(variable.getType(), type)) {
-        variable.setPayload(payload);
-        found = true;
-        break;
+  private void ensureResolved(List<ProcessVariable> toResolve) {
+    if (toResolve == null || toResolve.isEmpty()) {
+      return;
+    }
+    for (ProcessVariable variable : toResolve) {
+      ensureResolved(variable.getTaskId(), variable.getType(), variable.getPayload());
+    }
+  }
+
+  private List<ProcessVariable> findVariablesToResolve() {
+    List<ProcessVariable> toResolve = new ArrayList<>();
+    for (Map.Entry<Pair<String, Variable.Type>, Object> entry : newVariables.entrySet()) {
+      Object value = entry.getValue();
+      if (value instanceof Future<?>) {
+        ProcessVariable variable = new ProcessVariable();
+        variable.setTaskId(entry.getKey().getFirstElement());
+        variable.setType(entry.getKey().getSecondElement());
+        variable.setPayload(entry.getValue());
+        toResolve.add(variable);
       }
     }
-    if (!found) {
-      ProcessVariable variable = new ProcessVariable();
-      variable.setTaskId(taskId);
-      variable.setType(type);
-      variable.setPayload(payload);
-      newVariables.add(variable);
+    return toResolve;
+  }
+
+  private Object getVariableInternal(String taskId, Variable.Type type) {
+    Map<String, Object> payloadByType = variables.get(taskId);
+    if (payloadByType == null) {
+      return null;
+    }
+    return payloadByType.get(type.getKey());
+  }
+
+  private Object ensureResolved(String taskId, Variable.Type varType, Object payload) {
+    if (payload instanceof Future<?> future) {
+      Variable.Type resolvedType = varType;
+     // wait for completion
+      Object resolvedPayload = waitForVariable(taskId, varType, future);
+      if (resolvedPayload instanceof Pair<?, ?> pair) {
+        resolvedType = (Variable.Type) pair.getFirstElement();
+        resolvedPayload = pair.getSecondElement();
+      }
+      addNewVariable(taskId, resolvedType, resolvedPayload);
+      if (!Objects.equals(resolvedType, varType)) {
+        removeNewVariable(taskId, varType);
+        return null;
+      }
+      return resolvedPayload;
+    } else {
+      return payload;
+    }
+  }
+
+  private void removeNewVariable(String taskId, Variable.Type type) {
+    Map<String, Object> payloadByType = variables.get(taskId);
+    if (payloadByType != null) {
+      payloadByType.remove(type.getKey());
+    }
+    newVariables.remove(Pair.of(taskId, type));
+  }
+
+  private Object waitForVariable(String taskId, Variable.Type type, Future<?> future) {
+    try {
+      return future.get();
+    } catch (Exception eX) {
+      throw new TaskExecutionException(
+          "failed while waiting for variable of task: " + taskId + ", type: " + type, eX);
     }
   }
 }

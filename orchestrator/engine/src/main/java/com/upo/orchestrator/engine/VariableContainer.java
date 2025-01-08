@@ -49,6 +49,12 @@ public interface VariableContainer {
   List<ProcessVariable> getNewVariables();
 
   /**
+   * empties container maintaining all new variables created during current execution. Only retains
+   * variables as if they were restored from storage.
+   */
+  void clearNewVariables();
+
+  /**
    * Retrieves variable data for a specific task and type.
    *
    * @param taskId identifier of the task
