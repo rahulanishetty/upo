@@ -38,17 +38,13 @@ public class DotNotationJsonPath implements JsonPath {
   @Override
   public Object read(Object object) {
     Object current = object;
-    try {
-      for (var extractor : extractors) {
-        current = extractor.apply(current);
-        if (current == null) {
-          return null;
-        }
+    for (var extractor : extractors) {
+      current = extractor.apply(current);
+      if (current == null) {
+        return null;
       }
-      return current;
-    } catch (Exception e) {
-      throw new RuntimeException("Error extracting path", e);
     }
+    return current;
   }
 
   @Override
