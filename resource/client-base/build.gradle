@@ -5,13 +5,6 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-
 plugins {
-	// Apply the api convention plugin for shared build configuration between library and application projects.
-	id 'buildlogic.java-api-conventions'
-}
-
-dependencies {
-	implementation 'jakarta.inject:jakarta.inject-api:2.0.1'
-	implementation 'org.slf4j:slf4j-api:2.0.16'
+	id 'buildlogic.java-library-conventions'
 }
