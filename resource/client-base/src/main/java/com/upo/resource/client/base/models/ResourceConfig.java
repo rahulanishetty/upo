@@ -16,7 +16,8 @@ public abstract class ResourceConfig {
   /**
    * Unique identifier for this resource configuration. Follows the format:
    * resourceCategory/resourceType/identifier Examples: Server Config:
-   * REDIS_SERVER/REDIS_SERVER/redis-us-prod Resource Config: REDIS_SERVER/PROCESS_INSTANCE/tenantId
+   * REDIS_SERVER/REDIS_SERVER/redis-us-prod Resource Config:
+   * REDIS_SERVER/PROCESS_INSTANCE/partitionKey
    */
   private String id;
 

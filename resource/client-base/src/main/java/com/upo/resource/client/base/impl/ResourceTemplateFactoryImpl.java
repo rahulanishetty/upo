@@ -13,15 +13,15 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.upo.resource.client.base.*;
+import com.upo.resource.client.base.models.PartitionResourceConfig;
 import com.upo.resource.client.base.models.ResourceCategory;
 import com.upo.resource.client.base.models.ResourceConfig;
 import com.upo.resource.client.base.models.ResourceType;
-import com.upo.resource.client.base.models.TenantResourceConfig;
 
 public abstract class ResourceTemplateFactoryImpl<
         Template,
         Client extends Closeable,
-        TemplateConfig extends TenantResourceConfig,
+        TemplateConfig extends PartitionResourceConfig,
         ServerConfig extends ResourceConfig>
     extends ResourceClientFactoryImpl<Client, ServerConfig>
     implements ResourceTemplateFactory<Template> {
@@ -37,8 +37,8 @@ public abstract class ResourceTemplateFactoryImpl<
   }
 
   @Override
-  public Template getTemplateOrFail(ResourceType resourceType, String tenantId) {
-    return getTemplate(resourceType, tenantId)
+  public Template getTemplateOrFail(ResourceType resourceType, String partitionKey) {
+    return getTemplate(resourceType, partitionKey)
         .orElseThrow(
             () ->
                 new ResourceNotFoundException(
@@ -46,16 +46,16 @@ public abstract class ResourceTemplateFactoryImpl<
                         + resourceCategory.name()
                         + ", type: "
                         + resourceType.name()
-                        + ", tenantId: "
-                        + tenantId));
+                        + ", partitionKey: "
+                        + partitionKey));
   }
 
   @Override
-  public Optional<Template> getTemplate(ResourceType resourceType, String tenantId) {
+  public Optional<Template> getTemplate(ResourceType resourceType, String partitionKey) {
     return templateCache.computeIfAbsent(
-        createTenantResourceId(resourceType, tenantId),
-        tenantResourceId -> {
-          TemplateConfig config = resourceConfigProvider.getConfig(tenantResourceId);
+        createPartitionResourceId(resourceType, partitionKey),
+        partitionResourceId -> {
+          TemplateConfig config = resourceConfigProvider.getConfig(partitionResourceId);
           if (config == null) {
             return Optional.empty();
           }
@@ -67,7 +67,7 @@ public abstract class ResourceTemplateFactoryImpl<
 
   protected abstract Template createTemplate(Client client, TemplateConfig config);
 
-  private String createTenantResourceId(ResourceType resourceType, String tenantId) {
-    return resourceCategory.name() + "/" + resourceType.name() + "/" + tenantId;
+  private String createPartitionResourceId(ResourceType resourceType, String partitionKey) {
+    return resourceCategory.name() + "/" + resourceType.name() + "/" + partitionKey;
   }
 }

@@ -20,23 +20,23 @@ import com.upo.resource.client.base.models.ResourceType;
 public interface ResourceTemplateFactory<Template> {
 
   /**
-   * Returns a template for the specified resource type and tenant. Templates are typically cached
-   * and reused for the same type/tenant combination to avoid resource overhead.
+   * Returns a template for the specified resource type and partition. Templates are typically
+   * cached and reused for the same type/partition combination to avoid resource overhead.
    *
    * @param resourceType type defining logical resource partition
-   * @param tenantId identifier for the tenant requesting the template
+   * @param partitionKey identifier for the partition requesting the template
    * @return configured template instance
    * @throws ResourceNotFoundException if template creation/retrieval fails
    */
-  Template getTemplateOrFail(ResourceType resourceType, String tenantId);
+  Template getTemplateOrFail(ResourceType resourceType, String partitionKey);
 
   /**
-   * Returns a template for the specified resource type and tenant. Templates are typically cached
-   * and reused for the same type/tenant combination to avoid resource overhead.
+   * Returns a template for the specified resource type and partition. Templates are typically
+   * cached and reused for the same type/partition combination to avoid resource overhead.
    *
    * @param resourceType type defining logical resource partition
-   * @param tenantId identifier for the tenant requesting the template
+   * @param partitionKey identifier for the partition requesting the template
    * @return configured template instance
    */
-  Optional<Template> getTemplate(ResourceType resourceType, String tenantId);
+  Optional<Template> getTemplate(ResourceType resourceType, String partitionKey);
 }
