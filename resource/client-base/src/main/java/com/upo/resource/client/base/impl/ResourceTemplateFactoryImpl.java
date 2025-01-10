@@ -35,12 +35,17 @@ public abstract class ResourceTemplateFactoryImpl<
     implements ResourceTemplateFactory<Template> {
 
   private final ResourceCategory resourceCategory;
+  private final Class<TemplateConfig> templateConfigClz;
   private final Map<String, Optional<Template>> templateCache;
 
   public ResourceTemplateFactoryImpl(
-      ResourceConfigProvider resourceConfigProvider, ResourceCategory resourceCategory) {
-    super(resourceConfigProvider);
+      ResourceConfigProvider resourceConfigProvider,
+      ResourceCategory resourceCategory,
+      Class<ServerConfig> serverConfigClz,
+      Class<TemplateConfig> templateConfigClz) {
+    super(resourceConfigProvider, serverConfigClz);
     this.resourceCategory = resourceCategory;
+    this.templateConfigClz = templateConfigClz;
     this.templateCache = new ConcurrentHashMap<>();
   }
 
@@ -63,7 +68,8 @@ public abstract class ResourceTemplateFactoryImpl<
     return templateCache.computeIfAbsent(
         createPartitionResourceId(resourceType, partitionKey),
         partitionResourceId -> {
-          TemplateConfig config = resourceConfigProvider.getConfig(partitionResourceId);
+          TemplateConfig config =
+              resourceConfigProvider.getConfig(partitionResourceId, templateConfigClz);
           if (config == null) {
             return Optional.empty();
           }

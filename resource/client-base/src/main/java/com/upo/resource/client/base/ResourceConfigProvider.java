@@ -11,5 +11,5 @@ import com.upo.resource.client.base.models.ResourceConfig;
 
 public interface ResourceConfigProvider {
 
-  <T extends ResourceConfig> T getConfig(String id);
+  <T extends ResourceConfig> T getConfig(String id, Class<T> clz);
 }

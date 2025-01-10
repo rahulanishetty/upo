@@ -34,9 +34,12 @@ public abstract class ResourceClientFactoryImpl<
 
   protected final ResourceConfigProvider resourceConfigProvider;
   private final Map<String, Optional<Client>> clientCache;
+  private final Class<Config> configClz;
 
-  public ResourceClientFactoryImpl(ResourceConfigProvider resourceConfigProvider) {
+  public ResourceClientFactoryImpl(
+      ResourceConfigProvider resourceConfigProvider, Class<Config> configClz) {
     this.resourceConfigProvider = resourceConfigProvider;
+    this.configClz = configClz;
     this.clientCache = new ConcurrentHashMap<>();
   }
 
@@ -57,7 +60,7 @@ public abstract class ResourceClientFactoryImpl<
     return clientCache.computeIfAbsent(
         createServerResourceId(resourceCategory, resourceId),
         serverResourceId -> {
-          Config config = resourceConfigProvider.getConfig(serverResourceId);
+          Config config = resourceConfigProvider.getConfig(serverResourceId, configClz);
           if (config == null) {
             return Optional.empty();
           }

@@ -25,7 +25,11 @@ public class RedisTemplateFactoryImpl
     implements RedisTemplateFactory {
 
   public RedisTemplateFactoryImpl(ResourceConfigProvider resourceConfigProvider) {
-    super(resourceConfigProvider, () -> "REDIS_SERVER");
+    super(
+        resourceConfigProvider,
+        () -> "REDIS_SERVER",
+        RedisServerConfig.class,
+        RedisTemplateResourceConfig.class);
   }
 
   @Override
