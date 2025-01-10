@@ -18,6 +18,14 @@ import com.upo.resource.client.base.models.ResourceCategory;
 import com.upo.resource.client.base.models.ResourceConfig;
 import com.upo.resource.client.base.models.ResourceType;
 
+/**
+ * Abstract implementation of a resource template factory that extends the resource client factory.
+ *
+ * @param <Template> The type of template being managed
+ * @param <Client> The client type used for template creation
+ * @param <TemplateConfig> Configuration for template creation
+ * @param <ServerConfig> Configuration for the underlying server/resource
+ */
 public abstract class ResourceTemplateFactoryImpl<
         Template,
         Client extends Closeable,
@@ -65,8 +73,25 @@ public abstract class ResourceTemplateFactoryImpl<
         });
   }
 
+  /**
+   * Creates a specific template instance based on the provided client and configuration.
+   *
+   * <p>This method must be implemented by subclasses to define how specific types of templates are
+   * instantiated.
+   *
+   * @param client The client used to create the template
+   * @param config Configuration used to create the template
+   * @return A configured template instance
+   */
   protected abstract Template createTemplate(Client client, TemplateConfig config);
 
+  /**
+   * Generates a unique identifier for a partition resource.
+   *
+   * @param resourceType The type of resource
+   * @param partitionKey The specific partition identifier
+   * @return A concatenated, unique resource identifier
+   */
   private String createPartitionResourceId(ResourceType resourceType, String partitionKey) {
     return resourceCategory.name() + "/" + resourceType.name() + "/" + partitionKey;
   }

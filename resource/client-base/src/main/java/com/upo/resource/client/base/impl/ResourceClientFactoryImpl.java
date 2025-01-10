@@ -20,6 +20,12 @@ import com.upo.resource.client.base.*;
 import com.upo.resource.client.base.models.ResourceCategory;
 import com.upo.resource.client.base.models.ResourceConfig;
 
+/**
+ * Abstract implementation of a resource client factory with caching and configuration management.
+ *
+ * @param <Client> The type of client being managed (must implement {@link Closeable})
+ * @param <Config> The configuration type for client creation
+ */
 public abstract class ResourceClientFactoryImpl<
         Client extends Closeable, Config extends ResourceConfig>
     implements ResourceClientFactory<Client> {
@@ -76,8 +82,24 @@ public abstract class ResourceClientFactoryImpl<
     }
   }
 
+  /**
+   * Creates a specific client instance based on the provided configuration.
+   *
+   * <p>This method must be implemented by subclasses to define how specific types of clients are
+   * instantiated.
+   *
+   * @param config Configuration used to create the client
+   * @return A configured client instance
+   */
   protected abstract Client createClient(Config config);
 
+  /**
+   * Generates a unique identifier for a server resource.
+   *
+   * @param resourceCategory The category of the resource
+   * @param resourceId The specific resource identifier
+   * @return A concatenated, unique resource identifier
+   */
   private String createServerResourceId(ResourceCategory resourceCategory, String resourceId) {
     return resourceCategory.name() + "/" + resourceCategory.name() + "/" + resourceId;
   }
