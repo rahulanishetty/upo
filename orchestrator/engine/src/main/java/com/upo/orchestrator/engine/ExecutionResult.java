@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import com.upo.orchestrator.engine.models.CompletionSignal;
+
 /**
  * Represents the result of a task execution step. Supports multi-phase execution patterns like
  * two-phase commit and post-persistence callbacks.
@@ -21,13 +23,30 @@ public class ExecutionResult {
 
   /** Status of task execution. */
   public enum Status {
-    /** Continue with next task immediately */
+    /**
+     * Task has completed and process should continue with normal execution flow. Next task in the
+     * process should be executed immediately.
+     */
     CONTINUE,
     /** Wait for signal */
-    WAIT
+    WAIT,
+
+    /**
+     * Task has reached terminal state (success or failure). Process execution should end with the
+     * outcome specified in completion signal.
+     */
+    TERMINAL;
   }
 
   private Status status;
+
+  /**
+   * Completion details when task reaches TERMINAL status. Contains information about: -
+   * Success/failure outcome - Error details if failed - Completion metadata - Terminal state reason
+   *
+   * <p>Only relevant when status is TERMINAL.
+   */
+  private CompletionSignal completionSignal;
 
   /**
    * Serializable command to be executed after state persistence. This allows defining
@@ -54,6 +73,14 @@ public class ExecutionResult {
 
   public void setStatus(Status status) {
     this.status = status;
+  }
+
+  public CompletionSignal getCompletionSignal() {
+    return completionSignal;
+  }
+
+  public void setCompletionSignal(CompletionSignal completionSignal) {
+    this.completionSignal = completionSignal;
   }
 
   public Map<String, Object> getAfterSaveCommand() {

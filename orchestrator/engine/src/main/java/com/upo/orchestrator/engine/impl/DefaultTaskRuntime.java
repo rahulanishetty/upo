@@ -12,6 +12,9 @@ import java.util.Map;
 import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.models.Signal;
+import com.upo.orchestrator.engine.services.EnvironmentProvider;
+import com.upo.orchestrator.engine.services.ExecutionLifecycleManager;
+import com.upo.orchestrator.engine.services.ProcessInstanceStore;
 import com.upo.utilities.filter.impl.FilterEvaluator;
 
 public abstract class DefaultTaskRuntime implements TaskRuntime {
@@ -52,9 +55,25 @@ public abstract class DefaultTaskRuntime implements TaskRuntime {
   }
 
   private void beforeTaskExecution(ProcessInstance processInstance) {
+    EnvironmentProvider environmentProvider = getServices(processInstance).getEnvironmentProvider();
+    if (environmentProvider.isShutdownInProgress()) {
+      ExecutionLifecycleManager executionLifecycleManager =
+          getServices(processInstance).getExecutionLifecycleManager();
+      ProcessInstanceStore instanceStore = getServices(processInstance).getInstanceStore();
+      processInstance.setStatus(ExecutionResult.Status.WAIT);
+      if (instanceStore.save(processInstance, ExecutionResult.Status.CONTINUE)) {
+        executionLifecycleManager.resumeProcessFromTask(processInstance, this);
+      }
+      throw new TaskExecutionException("Shutdown in progress");
+    }
     processInstance.setPrevTaskId(processInstance.getCurrTaskId());
     processInstance.setCurrTaskId(taskId);
     processInstance.setCurrentTaskStartTime(System.currentTimeMillis());
+    processInstance.incrementTaskCount();
+  }
+
+  protected ProcessServices getServices(ProcessInstance processInstance) {
+    return processInstance.getProcessEnv().getProcessServices();
   }
 
   private void afterTaskExecution(

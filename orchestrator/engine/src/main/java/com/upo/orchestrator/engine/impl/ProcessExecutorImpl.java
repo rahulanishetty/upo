@@ -138,6 +138,8 @@ public class ProcessExecutorImpl implements ProcessExecutor {
     ProcessInstance processInstance = new ProcessInstance();
     processInstance.setId(UlidUtils.createId());
     processInstance.setStartTime(System.currentTimeMillis());
+    processInstance.setTaskCount(0L);
+    processInstance.setStatus(ExecutionResult.Status.CONTINUE);
 
     ProcessDetails details = processRuntime.getDetails();
     processInstance.setProcessId(details.getId());

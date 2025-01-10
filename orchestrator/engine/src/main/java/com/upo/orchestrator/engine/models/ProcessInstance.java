@@ -7,6 +7,7 @@
 */
 package com.upo.orchestrator.engine.models;
 
+import com.upo.orchestrator.engine.ExecutionResult;
 import com.upo.orchestrator.engine.VariableContainer;
 
 /**
@@ -48,8 +49,14 @@ public class ProcessInstance {
   /** Timestamp when process instance completed. Null if process is still executing. */
   private Long endTime;
 
+  /** Status of current task */
+  private ExecutionResult.Status status;
+
   /** ID of the currently executing task. */
   private String currTaskId;
+
+  /** Number of tasks executed in total */
+  private Long taskCount = 0L;
 
   /** Timestamp when current task started execution. Reset each time a new task begins. */
   private Long currentTaskStartTime;
@@ -149,6 +156,14 @@ public class ProcessInstance {
     this.endTime = endTime;
   }
 
+  public ExecutionResult.Status getStatus() {
+    return status;
+  }
+
+  public void setStatus(ExecutionResult.Status status) {
+    this.status = status;
+  }
+
   public String getCurrTaskId() {
     return currTaskId;
   }
@@ -203,5 +218,17 @@ public class ProcessInstance {
 
   public void setVariableContainer(VariableContainer variableContainer) {
     this.variableContainer = variableContainer;
+  }
+
+  public Long getTaskCount() {
+    return taskCount;
+  }
+
+  public void setTaskCount(Long taskCount) {
+    this.taskCount = taskCount;
+  }
+
+  public long incrementTaskCount() {
+    return taskCount++;
   }
 }

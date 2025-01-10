@@ -20,6 +20,7 @@ import com.upo.utilities.filter.impl.FilterEvaluator;
  */
 public interface ProcessRuntime {
 
+  /** Returns the process details */
   ProcessDetails getDetails();
 
   /** Returns the process definition */

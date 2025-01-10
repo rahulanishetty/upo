@@ -22,4 +22,6 @@ public interface EnvironmentProvider {
    * @return map of environment variable names to their values
    */
   Map<String, Object> lookupEnvVariables();
+
+  boolean isShutdownInProgress();
 }

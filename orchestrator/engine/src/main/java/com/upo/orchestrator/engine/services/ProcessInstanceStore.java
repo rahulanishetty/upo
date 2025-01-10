@@ -26,6 +26,14 @@ public interface ProcessInstanceStore {
   boolean save(ProcessInstance processInstance);
 
   /**
+   * Saves or updates a process instance in the store if in expected status
+   *
+   * @param processInstance the process instance to save
+   * @return true if save was successful, false otherwise
+   */
+  boolean save(ProcessInstance processInstance, ExecutionResult.Status expectedStatus);
+
+  /**
    * Retrieves a process instance by its identifier.
    *
    * @param id unique identifier of the process instance

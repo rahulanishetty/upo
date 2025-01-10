@@ -7,4 +7,10 @@
 */
 package com.upo.orchestrator.engine.services;
 
-public interface ExecutionLifecycleManager {}
+import com.upo.orchestrator.engine.TaskRuntime;
+import com.upo.orchestrator.engine.models.ProcessInstance;
+
+public interface ExecutionLifecycleManager {
+
+  void resumeProcessFromTask(ProcessInstance processInstance, TaskRuntime taskRuntime);
+}
