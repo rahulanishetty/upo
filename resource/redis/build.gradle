@@ -11,5 +11,9 @@ plugins {
 
 dependencies {
 	implementation project(':resource-client-base')
-	implementation 'io.vertx:vertx-redis-client:4.5.11'
+	implementation project(':utilities-ds')
+	implementation project(':utilities-json')
+
+	implementation 'io.lettuce:lettuce-core:6.5.2.RELEASE'
+	implementation 'org.apache.commons:commons-pool2:2.12.0'
 }

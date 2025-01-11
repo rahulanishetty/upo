@@ -7,55 +7,102 @@
 */
 package com.upo.resource.redis.models;
 
+import java.util.List;
+
 import com.upo.resource.client.base.models.ResourceConfig;
 
-import io.vertx.redis.client.RedisClientType;
-import io.vertx.redis.client.RedisReplicas;
-import io.vertx.redis.client.RedisRole;
-
+/**
+ * Configuration class for Redis server connections with comprehensive connection settings.
+ *
+ * <h2>Purpose</h2>
+ *
+ * Provides a flexible and extensible configuration mechanism for Redis connections, supporting
+ * multiple connection strategies and authentication methods.
+ *
+ * <h2>Supported Client Types</h2>
+ *
+ * <ul>
+ *   <li>STANDALONE: Single Redis server connection
+ *   <li>SENTINEL: Redis high availability configuration
+ *   <li>CLUSTER: Distributed Redis cluster configuration
+ * </ul>
+ *
+ * <h2>Key Configuration Options</h2>
+ *
+ * <ul>
+ *   <li>Multiple connection endpoints
+ *   <li>SSL configuration
+ *   <li>Authentication credentials
+ *   <li>Client type selection
+ *   <li>Read preference configuration
+ * </ul>
+ *
+ * <h2>Usage Example</h2>
+ *
+ * <pre>{@code
+ * RedisServerConfig config = new RedisServerConfig();
+ * config.setClientType(RedisServerConfig.ClientType.SENTINEL);
+ * config.setHostPorts(Arrays.asList(
+ *     new HostPort("redis1.example.com", 6379),
+ *     new HostPort("redis2.example.com", 6379)
+ * ));
+ * config.setSsl(true);
+ * config.setCredentials(credentials);
+ * }</pre>
+ *
+ * @see Credentials
+ * @see HostPort
+ */
 public class RedisServerConfig extends ResourceConfig {
+  /** Enumeration of supported Redis client connection types. */
+  public enum ClientType {
+    /** Single Redis server connection */
+    STANDALONE,
+    /** Redis high availability configuration with sentinels */
+    SENTINEL,
+    /** Distributed Redis cluster configuration */
+    CLUSTER;
+  }
 
-  private String host;
-  private int port;
+  /** List of server endpoints for connection. */
+  private List<HostPort> hostPorts;
+
+  /** Flag to enable SSL connection. */
   private boolean ssl;
+
+  /** Flag to disable hostname verification for SSL connections. */
   private boolean disableHostNameVerification;
 
-  /** {@link RedisClientType} */
-  private String clientType;
+  /** Type of Redis client connection. */
+  private ClientType clientType;
 
-  /** {@link RedisRole} */
-  private String role;
+  /**
+   * Configuration for read preferences in distributed setups.
+   *
+   * @see io.lettuce.core.ReadFrom
+   */
+  private String readPreference;
 
-  /** {@link RedisReplicas} */
-  private String useReplicas;
+  /** Sentinel master ID for high availability configurations. */
+  private String sentinelMasterId;
 
-  private String masterName;
-  private String password;
-
-  private Integer maxWaitingHandlers;
-  private Integer maxNestedArrays;
-
-  /** Pool Options */
-  private Integer poolCleanerInterval;
+  /** Authentication credentials for the Redis connection. */
+  private Credentials credentials;
 
   private Integer maxPoolSize;
-  private Integer poolMaxWaiting;
-  private Integer poolRecycleTimeout;
 
-  public String getHost() {
-    return host;
+  /** time duration between pool cleanup in seconds. default value = 30 seconds */
+  private Integer poolCleanerInterval;
+
+  /** maximum time a request can wait for a connection. default value = 5 seconds */
+  private Integer poolMaxWaitTime;
+
+  public List<HostPort> getHostPorts() {
+    return hostPorts;
   }
 
-  public void setHost(String host) {
-    this.host = host;
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public void setPort(int port) {
-    this.port = port;
+  public void setHostPorts(List<HostPort> hostPorts) {
+    this.hostPorts = hostPorts;
   }
 
   public boolean isSsl() {
@@ -74,60 +121,36 @@ public class RedisServerConfig extends ResourceConfig {
     this.disableHostNameVerification = disableHostNameVerification;
   }
 
-  public String getClientType() {
+  public ClientType getClientType() {
     return clientType;
   }
 
-  public void setClientType(String clientType) {
+  public void setClientType(ClientType clientType) {
     this.clientType = clientType;
   }
 
-  public String getRole() {
-    return role;
+  public String getReadPreference() {
+    return readPreference;
   }
 
-  public void setRole(String role) {
-    this.role = role;
+  public void setReadPreference(String readPreference) {
+    this.readPreference = readPreference;
   }
 
-  public String getUseReplicas() {
-    return useReplicas;
+  public String getSentinelMasterId() {
+    return sentinelMasterId;
   }
 
-  public void setUseReplicas(String useReplicas) {
-    this.useReplicas = useReplicas;
+  public void setSentinelMasterId(String sentinelMasterId) {
+    this.sentinelMasterId = sentinelMasterId;
   }
 
-  public String getMasterName() {
-    return masterName;
+  public Credentials getCredentials() {
+    return credentials;
   }
 
-  public void setMasterName(String masterName) {
-    this.masterName = masterName;
-  }
-
-  public String getPassword() {
-    return password;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public Integer getMaxWaitingHandlers() {
-    return maxWaitingHandlers;
-  }
-
-  public void setMaxWaitingHandlers(Integer maxWaitingHandlers) {
-    this.maxWaitingHandlers = maxWaitingHandlers;
-  }
-
-  public Integer getMaxNestedArrays() {
-    return maxNestedArrays;
-  }
-
-  public void setMaxNestedArrays(Integer maxNestedArrays) {
-    this.maxNestedArrays = maxNestedArrays;
+  public void setCredentials(Credentials credentials) {
+    this.credentials = credentials;
   }
 
   public Integer getPoolCleanerInterval() {
@@ -146,19 +169,11 @@ public class RedisServerConfig extends ResourceConfig {
     this.maxPoolSize = maxPoolSize;
   }
 
-  public Integer getPoolMaxWaiting() {
-    return poolMaxWaiting;
+  public Integer getPoolMaxWaitTime() {
+    return poolMaxWaitTime;
   }
 
-  public void setPoolMaxWaiting(Integer poolMaxWaiting) {
-    this.poolMaxWaiting = poolMaxWaiting;
-  }
-
-  public Integer getPoolRecycleTimeout() {
-    return poolRecycleTimeout;
-  }
-
-  public void setPoolRecycleTimeout(Integer poolRecycleTimeout) {
-    this.poolRecycleTimeout = poolRecycleTimeout;
+  public void setPoolMaxWaitTime(Integer poolMaxWaitTime) {
+    this.poolMaxWaitTime = poolMaxWaitTime;
   }
 }

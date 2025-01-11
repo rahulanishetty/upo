@@ -7,13 +7,6 @@
 */
 package com.upo.resource.redis;
 
-public class RedisTemplate {
-
-  private final RedisClient redisClient;
-  private final String prefix;
-
-  public RedisTemplate(RedisClient redisClient, String prefix) {
-    this.redisClient = redisClient;
-    this.prefix = prefix;
-  }
+public interface RedisTemplate {
+  <T> boolean insert(String id, T obj, Class<T> clz);
 }
