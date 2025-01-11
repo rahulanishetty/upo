@@ -71,6 +71,15 @@ public interface RedisTemplate {
   boolean saveMany(Map<String, String> entries);
 
   /**
+   * Atomically sets a key to a new value and returns the old value.
+   *
+   * @param id The key identifier
+   * @param value The new value to set
+   * @return Optional containing the old value, empty if key didn't exist
+   */
+  Optional<String> getSet(String id, String value);
+
+  /**
    * Retrieves a value by its key.
    *
    * @param id The key identifier
@@ -85,7 +94,32 @@ public interface RedisTemplate {
    * @param ids Collection of keys to retrieve
    * @return Map of key-value pairs for existing keys
    */
-  Map<String, String> multiGet(Collection<String> ids);
+  Map<String, String> getMany(Collection<String> ids);
+
+  /**
+   * Atomically retrieves a value and deletes the key.
+   *
+   * @param id The key identifier
+   * @return Optional containing the value before deletion, empty if key didn't exist
+   */
+  Optional<String> getDel(String id);
+
+  /**
+   * Atomically retrieves a value and expires the key after the specified time.
+   *
+   * @param id The key identifier
+   * @param expirySeconds Time in seconds after which the key will expire
+   * @return Optional containing the value, empty if key didn't exist
+   */
+  Optional<String> getEx(String id, long expirySeconds);
+
+  /**
+   * Atomically retrieves and persists a value (removes expiry).
+   *
+   * @param id The key identifier
+   * @return Optional containing the value, empty if key didn't exist
+   */
+  Optional<String> getPersist(String id);
 
   /**
    * Updates the expiration time of an existing key.

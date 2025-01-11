@@ -10,6 +10,7 @@ package com.upo.resource.redis;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import io.lettuce.core.GetExArgs;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.SetArgs;
 
@@ -82,7 +83,7 @@ public class RedisTemplateImpl implements RedisTemplate {
   }
 
   @Override
-  public Map<String, String> multiGet(Collection<String> ids) {
+  public Map<String, String> getMany(Collection<String> ids) {
     try (var commands = getCommands()) {
      // Convert keys to their prefixed versions
       String[] prefixedKeys = ids.stream().map(this::createId).toArray(String[]::new);
@@ -100,6 +101,30 @@ public class RedisTemplateImpl implements RedisTemplate {
         }
       }
       return result;
+    }
+  }
+
+  public Optional<String> getSet(String id, String value) {
+    try (var commands = getCommands()) {
+      return Optional.ofNullable(commands.getset(createId(id), value));
+    }
+  }
+
+  public Optional<String> getDel(String id) {
+    try (var commands = getCommands()) {
+      return Optional.ofNullable(commands.getdel(createId(id)));
+    }
+  }
+
+  public Optional<String> getEx(String id, long expirySeconds) {
+    try (var commands = getCommands()) {
+      return Optional.ofNullable(commands.getex(createId(id), GetExArgs.Builder.ex(expirySeconds)));
+    }
+  }
+
+  public Optional<String> getPersist(String id) {
+    try (var commands = getCommands()) {
+      return Optional.ofNullable(commands.getex(createId(id), GetExArgs.Builder.persist()));
     }
   }
 
