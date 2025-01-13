@@ -9,7 +9,7 @@ package com.upo.orchestrator.engine;
 
 import java.util.Map;
 
-import com.upo.orchestrator.engine.models.Signal;
+import com.upo.orchestrator.engine.models.CompletionSignal;
 
 /** Handles actual process execution using specified strategy */
 public interface ProcessExecutor {
@@ -43,5 +43,5 @@ public interface ProcessExecutor {
    * @throws IllegalArgumentException if process instance not found or signal/payload is invalid
    * @throws IllegalStateException if process instance is not in a state to handle signals
    */
-  void signal(String processInstanceId, Signal signal, Map<String, Object> payload);
+  void signal(String processInstanceId, CompletionSignal signal, Map<String, Object> payload);
 }

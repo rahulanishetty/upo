@@ -21,4 +21,6 @@ dependencies {
 	implementation project(':utilities-ulid')
 
 	implementation project(':orchestrator-api')
+
+	implementation 'jakarta.validation:jakarta.validation-api:3.1.0'
 }

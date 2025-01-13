@@ -9,6 +9,7 @@ package com.upo.orchestrator.engine;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import com.upo.orchestrator.engine.models.CompletionSignal;
@@ -18,8 +19,6 @@ import com.upo.orchestrator.engine.models.CompletionSignal;
  * two-phase commit and post-persistence callbacks.
  */
 public class ExecutionResult {
-
-  public static final ExecutionResult CONTINUE = new ExecutionResult(Status.CONTINUE);
 
   /** Status of task execution. */
   public enum Status {
@@ -105,5 +104,18 @@ public class ExecutionResult {
       this.variables = new ArrayList<>();
     }
     this.variables.add(variable);
+  }
+
+  public static ExecutionResult continueWithVariables(List<Variable> variables) {
+    ExecutionResult executionResult = new ExecutionResult();
+    executionResult.setStatus(Status.CONTINUE);
+    executionResult.setVariables(variables);
+    return executionResult;
+  }
+
+  public static ExecutionResult continueWithNoVariables() {
+    ExecutionResult executionResult = new ExecutionResult();
+    executionResult.setStatus(Status.CONTINUE);
+    return executionResult;
   }
 }

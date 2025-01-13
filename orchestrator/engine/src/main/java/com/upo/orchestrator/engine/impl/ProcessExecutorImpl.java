@@ -11,9 +11,9 @@ import java.util.*;
 import java.util.function.Function;
 
 import com.upo.orchestrator.engine.*;
+import com.upo.orchestrator.engine.models.CompletionSignal;
 import com.upo.orchestrator.engine.models.ProcessEnv;
 import com.upo.orchestrator.engine.models.ProcessInstance;
-import com.upo.orchestrator.engine.models.Signal;
 import com.upo.orchestrator.engine.services.ProcessInstanceStore;
 import com.upo.utilities.context.RequestContext;
 import com.upo.utilities.filter.impl.FilterEvaluator;
@@ -62,7 +62,8 @@ public class ProcessExecutorImpl implements ProcessExecutor {
   }
 
   @Override
-  public void signal(String processInstanceId, Signal signal, Map<String, Object> payload) {
+  public void signal(
+      String processInstanceId, CompletionSignal signal, Map<String, Object> payload) {
     ProcessInstanceStore instanceStore = processServices.getInstanceStore();
     ProcessInstance processInstance = lookupProcessInstance(processInstanceId, instanceStore);
     executeTaskSequence(

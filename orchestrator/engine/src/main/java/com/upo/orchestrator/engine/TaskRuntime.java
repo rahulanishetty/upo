@@ -11,8 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import com.upo.orchestrator.engine.models.CompletionSignal;
 import com.upo.orchestrator.engine.models.ProcessInstance;
-import com.upo.orchestrator.engine.models.Signal;
 
 /**
  * Runtime representation of a task that handles its execution lifecycle. This interface provides
@@ -42,7 +42,8 @@ public interface TaskRuntime {
    * @throws IllegalArgumentException if signal type not supported
    * @throws IllegalStateException if signal not valid in current state
    */
-  Next handleSignal(ProcessInstance processInstance, Signal signal, Map<String, Object> payload);
+  Next handleSignal(
+      ProcessInstance processInstance, CompletionSignal signal, Map<String, Object> payload);
 
   /**
    * Represents the next task(s) to be executed in the process flow. Used to determine process

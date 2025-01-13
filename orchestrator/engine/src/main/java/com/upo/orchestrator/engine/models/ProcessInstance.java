@@ -69,6 +69,10 @@ public class ProcessInstance {
   /** Number of tasks executed in total */
   private Long taskCount = 0L;
 
+  /** Number of tasks executed since last instance save */
+  @JSONField(serialize = false, deserialize = false)
+  private Long taskCountSinceLastFlush = 0L;
+
   /** Timestamp when current task started execution. Reset each time a new task begins. */
   private Long currentTaskStartTime;
 
@@ -256,7 +260,16 @@ public class ProcessInstance {
     this.taskCount = taskCount;
   }
 
+  public Long getTaskCountSinceLastFlush() {
+    return taskCountSinceLastFlush;
+  }
+
+  public void setTaskCountSinceLastFlush(Long taskCountSinceLastFlush) {
+    this.taskCountSinceLastFlush = taskCountSinceLastFlush;
+  }
+
   public long incrementTaskCount() {
-    return taskCount++;
+    taskCount++;
+    return taskCountSinceLastFlush++;
   }
 }
