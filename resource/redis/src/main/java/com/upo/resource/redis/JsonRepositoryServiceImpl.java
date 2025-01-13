@@ -26,7 +26,8 @@ import io.lettuce.core.ScriptOutputType;
  * @param <T> Type of the entity
  * @param <ID> Type of the entity's identifier
  */
-public class JsonRepositoryServiceImpl<T, ID> extends RepositoryServiceImpl<T, ID> {
+public class JsonRepositoryServiceImpl<T, ID> extends RepositoryServiceImpl<T, ID>
+    implements JsonRepositoryService<T, ID> {
 
   public JsonRepositoryServiceImpl(
       RedisTemplateFactory redisTemplateFactory,
@@ -36,15 +37,7 @@ public class JsonRepositoryServiceImpl<T, ID> extends RepositoryServiceImpl<T, I
     super(redisTemplateFactory, resourceType, clz, codec);
   }
 
-  /**
-   * Updates an entity if the value at the specified JSON path matches the expected value.
-   *
-   * @param obj Entity to update
-   * @param field Path to the field to compare (e.g., "metadata.version")
-   * @param expectedValue Expected value at the path
-   * @param returnOld If true, returns old value; if false, returns new value
-   * @return UpdateResult containing operation status and either old or new value
-   */
+  @Override
   public Optional<T> updateIf(T obj, String field, String expectedValue, boolean returnOld) {
     List<Object> result =
         executeScript(
