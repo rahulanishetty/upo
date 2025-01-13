@@ -10,6 +10,8 @@ package com.upo.resource.redis;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.upo.utilities.ds.CollectionUtils;
+
 import io.lettuce.core.GetExArgs;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.SetArgs;
@@ -251,6 +253,14 @@ public class RedisTemplateImpl implements RedisTemplate {
   public boolean delete(String id) {
     try (var commands = getCommands()) {
       return commands.del(createId(id)) > 0;
+    }
+  }
+
+  @Override
+  public long deleteMany(Collection<String> ids) {
+    try (var commands = getCommands()) {
+      String[] keys = CollectionUtils.transformToArray(ids, String[]::new, this::createId);
+      return commands.del(keys);
     }
   }
 

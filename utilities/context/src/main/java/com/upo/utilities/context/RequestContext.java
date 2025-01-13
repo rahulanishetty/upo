@@ -5,7 +5,7 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-package com.upo.orchestrator.engine;
+package com.upo.utilities.context;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -20,6 +20,13 @@ public interface RequestContext {
 
   /** Scoped value to store request context for the current execution scope. */
   ScopedValue<RequestContext> CONTEXT = ScopedValue.newInstance();
+
+  /**
+   * this can typically be tenantId
+   *
+   * @return partition key for current context
+   */
+  String getPartitionKey();
 
   /**
    * Converts the request context to a map representation. This map typically includes: - Request

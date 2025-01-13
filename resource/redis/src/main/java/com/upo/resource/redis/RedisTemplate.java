@@ -139,6 +139,14 @@ public interface RedisTemplate {
   boolean delete(String id);
 
   /**
+   * Deletes keys and its associated values.
+   *
+   * @param ids The key identifier
+   * @return The number of keys that were removed.
+   */
+  long deleteMany(Collection<String> ids);
+
+  /**
    * Adds a value to the end of a list.
    *
    * @param id The list identifier

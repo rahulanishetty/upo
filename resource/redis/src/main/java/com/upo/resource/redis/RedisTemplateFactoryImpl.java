@@ -7,8 +7,6 @@
 */
 package com.upo.resource.redis;
 
-import static com.upo.resource.redis.models.RedisServerConfig.ClientType.*;
-
 import com.upo.resource.client.base.ResourceConfigProvider;
 import com.upo.resource.client.base.impl.ResourceTemplateFactoryImpl;
 import com.upo.resource.client.base.models.ResourceType;
