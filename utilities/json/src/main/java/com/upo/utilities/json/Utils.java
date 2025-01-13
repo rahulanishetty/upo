@@ -7,8 +7,9 @@
 */
 package com.upo.utilities.json;
 
+import java.lang.reflect.Type;
+
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.TypeReference;
 
 public class Utils {
 
@@ -26,11 +27,11 @@ public class Utils {
     return JSON.toJSONString(object);
   }
 
-  public static <T> T fromJson(String json, TypeReference<T> typeReference) {
+  public static <T> T fromJson(String json, Type type) {
     if (json == null) {
       return null;
     }
-    return JSON.parseObject(json, typeReference.getType());
+    return JSON.parseObject(json, type);
   }
 
   public static <T> T fromJson(String json, Class<T> clz) {

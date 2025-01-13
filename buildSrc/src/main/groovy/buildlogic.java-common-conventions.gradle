@@ -8,6 +8,7 @@
 plugins {
 	// Apply the java Plugin to add support for Java.
 	id 'java'
+	id 'java-test-fixtures'
 }
 
 repositories {
@@ -23,6 +24,7 @@ dependencies {
 
 	// Use JUnit Jupiter for testing.
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.11.1'
+	testFixturesImplementation 'org.junit.jupiter:junit-jupiter:5.11.1'
 
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

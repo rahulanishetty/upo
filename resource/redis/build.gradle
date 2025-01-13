@@ -17,4 +17,10 @@ dependencies {
 
 	implementation 'io.lettuce:lettuce-core:6.5.2.RELEASE'
 	implementation 'org.apache.commons:commons-pool2:2.12.0'
+
+	testImplementation testFixtures(project(':resource-client-base'))
+	testImplementation testFixtures(project(':utilities-context'))
+
+	testImplementation 'org.testcontainers:testcontainers:1.20.4'
+	testImplementation 'org.testcontainers:junit-jupiter:1.20.4'
 }

@@ -14,11 +14,11 @@ import com.upo.utilities.json.Utils;
 
 public abstract class JsonRedisCodec<T, ID> implements RedisCodec<T, ID> {
 
-  private final Class<T> type;
+  private final Class<T> clz;
   private final Function<T, ID> idProvider;
 
   public JsonRedisCodec(Class<T> clz, Function<T, ID> idProvider) {
-    this.type = clz;
+    this.clz = clz;
     this.idProvider = idProvider;
   }
 
@@ -29,7 +29,7 @@ public abstract class JsonRedisCodec<T, ID> implements RedisCodec<T, ID> {
 
   @Override
   public T fromString(String value) {
-    return Utils.fromJson(value, this.type);
+    return Utils.fromJson(value, this.clz);
   }
 
   @Override

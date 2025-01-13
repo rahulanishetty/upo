@@ -43,7 +43,7 @@ public class JsonRepositoryServiceImpl<T, ID> extends RepositoryServiceImpl<T, I
         executeScript(
             StandardScripts.UPDATE_IF,
             Collections.singletonList(createKey(obj)),
-            Arrays.asList(toString(obj), "$." + field, expectedValue, String.valueOf(returnOld)));
+            Arrays.asList(toString(obj), field, expectedValue, String.valueOf(returnOld)));
     return processUpdateResult(result);
   }
 
