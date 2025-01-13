@@ -13,7 +13,7 @@ import com.upo.resource.client.base.models.ResourceType;
 import com.upo.utilities.context.RequestContext;
 import com.upo.utilities.ds.CollectionUtils;
 
-public class RepositoryServiceImpl<T, ID> implements RepositoryService<T, ID> {
+public class RepositoryServiceImpl<T, ID> implements RepositoryService<T, ID>, RawStorageAccessor {
 
   private final RedisTemplateFactory redisTemplateFactory;
   private final ResourceType resourceType;
@@ -122,6 +122,11 @@ public class RepositoryServiceImpl<T, ID> implements RepositoryService<T, ID> {
   @Override
   public boolean updateExpiry(ID id, long expirySeconds) {
     return getRedisTemplate().updateExpiry(toKey(id), expirySeconds);
+  }
+
+  @Override
+  public RedisTemplate getRawTemplate() {
+    return getRedisTemplate();
   }
 
   protected String createKey(T obj) {
