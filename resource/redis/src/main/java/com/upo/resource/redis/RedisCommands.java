@@ -98,8 +98,10 @@ public interface RedisCommands extends RedisClusterCommands<String, String>, Clo
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
       if (method.getDeclaringClass().equals(RedisCommands.class)) {
-        connection.close();
-        return null;
+        if (args.length == 0 && "close".equals(method.getName())) {
+          connection.close();
+          return null;
+        }
       }
       return invoke(method, args);
     }

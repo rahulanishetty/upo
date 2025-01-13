@@ -26,7 +26,7 @@ abstract class AbstractRedisClient implements RedisClient {
           try (RedisCommands redisCommands = getRedisCommands()) {
             String digest =
                 redisCommands.digest(Objects.requireNonNull(script, "script cannot be null"));
-            List<Boolean> booleans = getRedisCommands().scriptExists(digest);
+            List<Boolean> booleans = redisCommands.scriptExists(digest);
             if (CollectionUtils.isNotEmpty(booleans)) {
               if (Boolean.TRUE.equals(booleans.getFirst())) {
                 return digest;
