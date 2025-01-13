@@ -7,8 +7,8 @@
 */
 package com.upo.resource.client.base;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.upo.resource.client.base.models.ResourceConfig;
 
@@ -16,11 +16,11 @@ public class TestResourceConfigProvider implements ResourceConfigProvider {
   private final Map<String, ResourceConfig> registry;
 
   public TestResourceConfigProvider() {
-    this.registry = new HashMap<>();
+    this.registry = new ConcurrentHashMap<>();
   }
 
   public void registerResource(ResourceConfig resourceConfig) {
-    registry.put(resourceConfig.getId(), resourceConfig);
+    registry.putIfAbsent(resourceConfig.getId(), resourceConfig);
   }
 
   @Override

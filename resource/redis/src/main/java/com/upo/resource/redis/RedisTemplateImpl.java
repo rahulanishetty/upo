@@ -97,9 +97,11 @@ public class RedisTemplateImpl implements RedisTemplate, WithRedisCommands {
       Map<String, String> result = new HashMap<>();
       for (KeyValue<String, String> keyValue : keyValues) {
         String key = keyValue.getKey();
-        String value = keyValue.getValue();
-        if (value != null) {
-          result.put(removePrefix(key), value);
+        if (keyValue.hasValue()) {
+          String value = keyValue.getValue();
+          if (value != null) {
+            result.put(removePrefix(key), value);
+          }
         }
       }
       return result;

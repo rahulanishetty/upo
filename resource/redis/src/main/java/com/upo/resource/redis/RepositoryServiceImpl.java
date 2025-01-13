@@ -39,7 +39,7 @@ public class RepositoryServiceImpl<T, ID> implements RepositoryService<T, ID> {
   @Override
   public boolean insertMany(Collection<T> objects) {
     if (CollectionUtils.isEmpty(objects)) {
-      return false;
+      return true;
     }
     Map<String, String> toInsert =
         CollectionUtils.transformToMap(objects, this::createKey, this::toString);
@@ -54,7 +54,7 @@ public class RepositoryServiceImpl<T, ID> implements RepositoryService<T, ID> {
   @Override
   public boolean saveMany(Collection<T> objects) {
     if (CollectionUtils.isEmpty(objects)) {
-      return false;
+      return true;
     }
     Map<String, String> toSave =
         CollectionUtils.transformToMap(objects, this::createKey, this::toString);
@@ -83,6 +83,9 @@ public class RepositoryServiceImpl<T, ID> implements RepositoryService<T, ID> {
 
   @Override
   public long deleteByIds(Collection<ID> ids) {
+    if (CollectionUtils.isEmpty(ids)) {
+      return 0;
+    }
     return getRedisTemplate().deleteMany(CollectionUtils.transformToList(ids, this::toKey));
   }
 
