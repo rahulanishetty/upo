@@ -271,4 +271,31 @@ public interface RedisTemplate {
    * @return Optional containing TTL in seconds, empty if key doesn't exist
    */
   Optional<Long> getTimeToLive(String id);
+
+  /**
+   * Returns the namespace prefix used for all Redis keys managed by this template. The namespace
+   * helps prevent key collisions and organizes keys by their domain.
+   *
+   * <p>The returned prefix is guaranteed to: - Never be null - Always end with a forward slash
+   * ('/') - Be consistent across all operations
+   *
+   * <p>Prefix: "<prefixAtResourceCategory>/<partitionKey>/<resourceType>"
+   *
+   * @return The namespace prefix that is prepended to all Redis keys
+   */
+  String getKeyNamespace();
+
+  /**
+   * Loads a predefined script into Redis and returns its digest. If the script is already loaded,
+   * returns the existing digest. The script is identified by a scriptId which maps to standard
+   * scripts maintained by the template.
+   *
+   * <p>Standard scripts include: - "update-if" : Conditional update with JSON path comparison -
+   * "batch-ops" : Atomic batch operations
+   *
+   * @param scriptId The identifier for the standard script to load
+   * @param force forces internal refresh if requested
+   * @return The digest of the loaded script, used for execution
+   */
+  String loadStandardScript(String scriptId, boolean force);
 }

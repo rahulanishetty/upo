@@ -72,6 +72,33 @@ public interface RedisClient extends Closeable {
   RedisCommands getRedisCommands();
 
   /**
+   * Registers a Lua script with Redis and returns its digest. If the script was previously
+   * registered, returns the existing digest. The scriptId serves as a logical identifier for the
+   * script.
+   *
+   * @param scriptId A unique identifier for the script. This ID can be used to track and manage
+   *     scripts in the application but is not used by Redis itself
+   * @param script The Lua script content to register
+   * @return digest of the script, which can be used with EVALSHA
+   */
+  String registerScript(String scriptId, String script);
+
+  /**
+   * Force registers a Lua script with Redis by loading it unconditionally, even if a script with
+   * the same scriptId exists. Returns the digest of the registered script.
+   *
+   * <p>Unlike registerScript() which reuses existing scripts, this method always loads the provided
+   * script into Redis, making it useful for script updates and debugging.
+   *
+   * @param scriptId A unique identifier for the script. This ID can be used to track and manage
+   *     scripts in the application but is not used by Redis itself
+   * @param script The Lua script content to register
+   * @return digest of the script, which can be used with EVALSHA
+   * @see #registerScript(String, String) for non-forced registration
+   */
+  String forceRegisterScript(String scriptId, String script);
+
+  /**
    * Static factory method for creating a Redis client based on server configuration.
    *
    * <h2>Client Creation Strategy</h2>
@@ -138,7 +165,7 @@ public interface RedisClient extends Closeable {
    */
   private static RedisClient from(
       RedisClusterClient client, ReadFrom readFrom, GenericObjectPoolConfig<?> poolConfig) {
-    return new RedisClient() {
+    return new AbstractRedisClient() {
       private final GenericObjectPool<StatefulRedisClusterConnection<String, String>>
           connectionPool = createConnectionPool(client, readFrom, poolConfig);
 
@@ -203,7 +230,7 @@ public interface RedisClient extends Closeable {
       RedisURI redisURI,
       ReadFrom readFrom,
       GenericObjectPoolConfig<?> poolConfig) {
-    return new RedisClient() {
+    return new AbstractRedisClient() {
 
       private final GenericObjectPool<StatefulRedisMasterReplicaConnection<String, String>>
           connectionPool = createConnectionPool(client, redisURI, readFrom, poolConfig);

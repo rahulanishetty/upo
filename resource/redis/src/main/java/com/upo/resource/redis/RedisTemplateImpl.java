@@ -16,7 +16,7 @@ import io.lettuce.core.GetExArgs;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.SetArgs;
 
-public class RedisTemplateImpl implements RedisTemplate {
+public class RedisTemplateImpl implements RedisTemplate, WithRedisCommands {
 
   private final RedisClient redisClient;
   private final String prefix;
@@ -264,15 +264,35 @@ public class RedisTemplateImpl implements RedisTemplate {
     }
   }
 
+  @Override
+  public String loadStandardScript(String scriptId, boolean force) {
+    String script = StandardScripts.getScript(scriptId);
+    if (force) {
+      return redisClient.forceRegisterScript(scriptId, script);
+    } else {
+      return redisClient.registerScript(scriptId, script);
+    }
+  }
+
+  @Override
+  public String getKeyNamespace() {
+    return prefix;
+  }
+
+  @Override
+  public RedisCommands getRedisCommands() {
+    return getCommands();
+  }
+
   private RedisCommands getCommands() {
     return redisClient.getRedisCommands();
   }
 
   private String createId(String id) {
-    return prefix + id;
+    return getKeyNamespace() + id;
   }
 
   private String removePrefix(String key) {
-    return key.substring(prefix.length());
+    return key.substring(getKeyNamespace().length());
   }
 }

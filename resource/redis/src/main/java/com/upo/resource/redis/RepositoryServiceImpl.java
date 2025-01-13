@@ -121,7 +121,7 @@ public class RepositoryServiceImpl<T, ID> implements RepositoryService<T, ID> {
     return getRedisTemplate().updateExpiry(toKey(id), expirySeconds);
   }
 
-  private String createKey(T obj) {
+  protected String createKey(T obj) {
     return createKey(codec.getId(obj));
   }
 
@@ -137,15 +137,15 @@ public class RepositoryServiceImpl<T, ID> implements RepositoryService<T, ID> {
     return codec.deserializeId(key.substring(prefix.length()));
   }
 
-  private String toString(T obj) {
+  protected String toString(T obj) {
     return codec.toString(obj);
   }
 
-  private T fromString(String value) {
+  protected T fromString(String value) {
     return codec.fromString(value);
   }
 
-  private RedisTemplate getRedisTemplate() {
+  RedisTemplate getRedisTemplate() {
     RequestContext requestContext = RequestContext.get();
     if (requestContext == null) {
       throw new IllegalStateException("RequestContext is not set!");
