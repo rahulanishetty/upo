@@ -9,6 +9,7 @@ package com.upo.orchestrator.engine.models;
 
 import java.util.List;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.upo.orchestrator.engine.ExecutionResult;
 import com.upo.orchestrator.engine.VariableContainer;
 
@@ -17,6 +18,8 @@ import com.upo.orchestrator.engine.VariableContainer;
  * from start to completion. Can be a root process instance or a child of another process instance.
  */
 public class ProcessInstance {
+
+  public static final String STATUS = "status";
 
   /** Unique identifier for this process instance. */
   private String id;
@@ -82,6 +85,7 @@ public class ProcessInstance {
   private ProcessEnv processEnv;
 
   /** Variables produced and consumed during process execution. */
+  @JSONField(serialize = false, deserialize = false)
   private VariableContainer variableContainer;
 
   public String getId() {

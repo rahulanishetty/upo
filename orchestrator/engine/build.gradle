@@ -10,10 +10,15 @@ plugins {
 }
 
 dependencies {
+	implementation project(':resource-client-base')
+	implementation project(':resource-redis')
+
+	implementation project(':utilities-context')
 	implementation project(':utilities-ds')
 	implementation project(':utilities-filter-impl')
 	implementation project(':utilities-filter-api')
 	implementation project(':utilities-json')
 	implementation project(':utilities-ulid')
+
 	implementation project(':orchestrator-api')
 }

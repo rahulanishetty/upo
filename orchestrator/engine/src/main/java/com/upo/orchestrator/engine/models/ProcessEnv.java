@@ -9,6 +9,7 @@ package com.upo.orchestrator.engine.models;
 
 import java.util.Map;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.upo.orchestrator.engine.ProcessServices;
 
 /**
@@ -56,6 +57,7 @@ public class ProcessEnv {
    * Process instance storage - Variable management These services are configured based on the
    * execution strategy (local, distributed, etc.).
    */
+  @JSONField(serialize = false, deserialize = false)
   private ProcessServices processServices;
 
   public Map<String, Object> getEnv() {

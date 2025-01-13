@@ -8,10 +8,9 @@
 package com.upo.orchestrator.engine.services;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 
-import com.upo.orchestrator.engine.Variable;
-import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.orchestrator.engine.models.ProcessVariable;
 
 /**
  * Store interface for persisting and retrieving process variables. Manages the storage of variables
@@ -25,17 +24,25 @@ public interface VariableStore {
    * (taskId + type) and process instance creates a unique context for the variable.
    *
    * @param variable the variable to save
-   * @param processInstance process instance context for the variable
    * @return true if save was successful, false otherwise
    */
-  boolean save(Variable variable, ProcessInstance processInstance);
+  boolean save(ProcessVariable variable);
+
+  /**
+   * Saves a variable in the store with its process instance context. The combination of variable
+   * (taskId + type) and process instance creates a unique context for the variable.
+   *
+   * @param variables the variables to be saved
+   * @return true if save was successful, false otherwise
+   */
+  boolean saveMany(Collection<ProcessVariable> variables);
 
   /**
    * Retrieves multiple variables by their identifiers. Each identifier should uniquely identify a
    * variable within its process instance context.
    *
    * @param ids collection of variable identifiers to retrieve
-   * @return list of matched variables, empty list if none found
+   * @return map of id vs variables, empty map if none found
    */
-  List<Variable> findVariables(Collection<String> ids);
+  Map<String, ProcessVariable> findByIds(Collection<String> ids);
 }

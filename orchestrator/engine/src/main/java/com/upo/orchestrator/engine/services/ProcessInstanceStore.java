@@ -7,6 +7,8 @@
 */
 package com.upo.orchestrator.engine.services;
 
+import java.util.Optional;
+
 import com.upo.orchestrator.engine.ExecutionResult;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
@@ -37,9 +39,9 @@ public interface ProcessInstanceStore {
    * Retrieves a process instance by its identifier.
    *
    * @param id unique identifier of the process instance
-   * @return the process instance if found, null otherwise
+   * @return the process instance if found
    */
-  ProcessInstance findById(String id);
+  Optional<ProcessInstance> findById(String id);
 
   /**
    * Retrieves a process instance by its identifier if in expected status.
@@ -48,5 +50,5 @@ public interface ProcessInstanceStore {
    * @param expectedStatus expectedStatus of the process instance
    * @return the process instance if found, null otherwise
    */
-  ProcessInstance findById(String id, ExecutionResult.Status expectedStatus);
+  Optional<ProcessInstance> findById(String id, ExecutionResult.Status expectedStatus);
 }

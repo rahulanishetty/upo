@@ -16,11 +16,16 @@ import com.upo.resource.redis.RedisTemplateFactory;
 import com.upo.resource.redis.models.RedisServerConfig;
 import com.upo.resource.redis.models.RedisTemplateResourceConfig;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+
+@Singleton
 public class RedisTemplateFactoryImpl
     extends ResourceTemplateFactoryImpl<
         RedisTemplate, RedisClient, RedisTemplateResourceConfig, RedisServerConfig>
     implements RedisTemplateFactory {
 
+  @Inject
   public RedisTemplateFactoryImpl(ResourceConfigProvider resourceConfigProvider) {
     super(
         resourceConfigProvider,

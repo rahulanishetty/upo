@@ -47,4 +47,12 @@ public class ProcessVariable implements Variable {
   public void setPayload(Object payload) {
     this.payload = payload;
   }
+
+  public void initId(ProcessInstance processInstance) {
+    String rootInstanceId = processInstance.getRootId();
+    if (rootInstanceId == null || rootInstanceId.isEmpty()) {
+      rootInstanceId = processInstance.getId();
+    }
+    setId(rootInstanceId + "/" + processInstance.getId() + "/" + taskId + "/" + type.getKey());
+  }
 }

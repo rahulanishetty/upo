@@ -15,6 +15,7 @@ import com.upo.orchestrator.engine.models.ProcessEnv;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.models.Signal;
 import com.upo.orchestrator.engine.services.ProcessInstanceStore;
+import com.upo.utilities.context.RequestContext;
 import com.upo.utilities.filter.impl.FilterEvaluator;
 import com.upo.utilities.ulid.UlidUtils;
 
@@ -72,18 +73,22 @@ public class ProcessExecutorImpl implements ProcessExecutor {
 
   private ProcessInstance lookupProcessInstance(
       String processInstanceId, ProcessInstanceStore instanceStore) {
-    ProcessInstance processInstance =
+    Optional<ProcessInstance> processInstance =
         instanceStore.findById(processInstanceId, ExecutionResult.Status.WAIT);
-    if (processInstance == null) {
-      throw new IllegalStateException("process no longer in expected state to send a signal");
-    }
-    ProcessEnv processEnv = processInstance.getProcessEnv();
-    if (processEnv == null) {
-      throw new IllegalStateException("ProcessEnv is null, but it shouldn't be!");
-    }
-    processEnv.setProcessServices(processServices);
-    processInstance.setVariableContainer(createVariableContainer(processEnv));
-    return processInstance;
+    return processInstance
+        .map(
+            instance -> {
+              ProcessEnv processEnv = instance.getProcessEnv();
+              if (processEnv == null) {
+                throw new IllegalStateException("ProcessEnv is null, but it shouldn't be!");
+              }
+              processEnv.setProcessServices(processServices);
+              instance.setVariableContainer(createVariableContainer(processEnv));
+              return instance;
+            })
+        .orElseThrow(
+            () ->
+                new IllegalStateException("process no longer in expected state to send a signal"));
   }
 
   /**

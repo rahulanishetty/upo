@@ -5,10 +5,10 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-plugins {
-	id 'buildlogic.java-library-conventions'
-}
+package com.upo.orchestrator.engine.impl.distributed;
 
-dependencies {
-	api 'com.alibaba.fastjson2:fastjson2:2.0.53'
+import com.upo.resource.client.base.models.ResourceType;
+
+public class Resources {
+  public static final ResourceType REDIS = () -> "ORCHESTRATOR_ENGINE";
 }
