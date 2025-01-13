@@ -82,7 +82,7 @@ public final class StandardScripts {
               return {returnOld and currentValue or ARGV[1], 1}
               """);
 
-  static String getScript(String scriptId) {
+  public static String getScript(String scriptId) {
     return SCRIPT.get(scriptId);
   }
 }

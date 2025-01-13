@@ -5,11 +5,14 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-package com.upo.resource.redis;
+package com.upo.resource.redis.impl;
 
 import com.upo.resource.client.base.ResourceConfigProvider;
 import com.upo.resource.client.base.impl.ResourceTemplateFactoryImpl;
 import com.upo.resource.client.base.models.ResourceType;
+import com.upo.resource.redis.RedisClient;
+import com.upo.resource.redis.RedisTemplate;
+import com.upo.resource.redis.RedisTemplateFactory;
 import com.upo.resource.redis.models.RedisServerConfig;
 import com.upo.resource.redis.models.RedisTemplateResourceConfig;
 

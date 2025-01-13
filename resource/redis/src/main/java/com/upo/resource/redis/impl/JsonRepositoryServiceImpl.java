@@ -5,7 +5,7 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-package com.upo.resource.redis;
+package com.upo.resource.redis.impl;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.upo.resource.client.base.models.ResourceType;
-import com.upo.resource.redis.impl.JsonRedisCodec;
+import com.upo.resource.redis.*;
 import com.upo.utilities.ds.CollectionUtils;
 
 import io.lettuce.core.RedisNoScriptException;

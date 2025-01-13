@@ -23,6 +23,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.upo.resource.client.base.TestResourceConfigProvider;
 import com.upo.resource.redis.impl.JsonRedisCodec;
+import com.upo.resource.redis.impl.JsonRepositoryServiceImpl;
+import com.upo.resource.redis.impl.RedisTemplateFactoryImpl;
 import com.upo.utilities.context.RequestContextExtension;
 import com.upo.utilities.context.WithRequestContext;
 

@@ -5,16 +5,18 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-package com.upo.resource.redis;
+package com.upo.resource.redis.impl;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.upo.resource.redis.RedisClient;
+import com.upo.resource.redis.RedisCommands;
 import com.upo.utilities.ds.CollectionUtils;
 
-abstract class AbstractRedisClient implements RedisClient {
+public abstract class AbstractRedisClient implements RedisClient {
 
   private final Map<String, String> scriptIdVsScriptSha = new ConcurrentHashMap<>();
 

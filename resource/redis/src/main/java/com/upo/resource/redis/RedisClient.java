@@ -15,6 +15,7 @@ import java.util.List;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
+import com.upo.resource.redis.impl.AbstractRedisClient;
 import com.upo.resource.redis.models.RedisServerConfig;
 import com.upo.utilities.ds.IOUtils;
 

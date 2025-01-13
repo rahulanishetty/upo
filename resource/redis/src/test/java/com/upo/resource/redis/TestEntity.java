@@ -9,7 +9,7 @@ package com.upo.resource.redis;
 
 import java.util.Objects;
 
-class TestEntity {
+public class TestEntity {
   private String id;
   private String name;
   private Long version;
