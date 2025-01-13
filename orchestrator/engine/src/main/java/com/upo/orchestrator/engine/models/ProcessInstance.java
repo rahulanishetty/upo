@@ -7,6 +7,8 @@
 */
 package com.upo.orchestrator.engine.models;
 
+import java.util.List;
+
 import com.upo.orchestrator.engine.ExecutionResult;
 import com.upo.orchestrator.engine.VariableContainer;
 
@@ -37,6 +39,9 @@ public class ProcessInstance {
   /** execution strategy used for this instance */
   private String executionStrategy;
 
+  /** children instances spawned by this instance */
+  private List<String> childInstanceIds;
+
   /**
    * Optional task ID where process execution should terminate. Used to execute subset of process or
    * handle early termination.
@@ -51,6 +56,9 @@ public class ProcessInstance {
 
   /** Status of current task */
   private ExecutionResult.Status status;
+
+  /** the child instances this instance needs to wait for completion, before resuming */
+  private List<String> remainingChildInstances;
 
   /** ID of the currently executing task. */
   private String currTaskId;
@@ -132,6 +140,14 @@ public class ProcessInstance {
     this.executionStrategy = executionStrategy;
   }
 
+  public List<String> getChildInstanceIds() {
+    return childInstanceIds;
+  }
+
+  public void setChildInstanceIds(List<String> childInstanceIds) {
+    this.childInstanceIds = childInstanceIds;
+  }
+
   public String getTerminateAtTaskId() {
     return terminateAtTaskId;
   }
@@ -162,6 +178,14 @@ public class ProcessInstance {
 
   public void setStatus(ExecutionResult.Status status) {
     this.status = status;
+  }
+
+  public List<String> getRemainingChildInstances() {
+    return remainingChildInstances;
+  }
+
+  public void setRemainingChildInstances(List<String> remainingChildInstances) {
+    this.remainingChildInstances = remainingChildInstances;
   }
 
   public String getCurrTaskId() {
