@@ -55,6 +55,18 @@ public class DotNotationJsonPath implements JsonPath {
     return tokens.get(index);
   }
 
+  @Override
+  public boolean equals(Object object) {
+    if (object == null || getClass() != object.getClass()) return false;
+    DotNotationJsonPath that = (DotNotationJsonPath) object;
+    return Objects.equals(tokens, that.tokens);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(tokens);
+  }
+
   private static void init(
       String path, List<Function<Object, Object>> extractors, List<String> tokens) {
     Matcher matcher = TOKEN_PATTERN.matcher(path);

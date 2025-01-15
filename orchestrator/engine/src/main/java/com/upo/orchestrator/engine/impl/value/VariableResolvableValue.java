@@ -16,7 +16,11 @@ public class VariableResolvableValue implements ResolvableValue {
   private final JsonPath variablePath;
 
   public VariableResolvableValue(String variablePath) {
-    this.variablePath = JsonPath.create(variablePath.trim());
+    variablePath = variablePath.trim();
+    if (variablePath.isEmpty()) {
+      throw new IllegalArgumentException("variable cannot be blank");
+    }
+    this.variablePath = JsonPath.create(variablePath);
   }
 
   @Override
