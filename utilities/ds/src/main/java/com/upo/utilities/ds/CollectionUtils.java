@@ -107,4 +107,15 @@ public class CollectionUtils {
     }
     return result;
   }
+
+  public static <K, V> String getStringValue(Map<K, V> input, K key) {
+    if (isEmpty(input)) {
+      return null;
+    }
+    V value = input.get(key);
+    if (value == null) {
+      return null;
+    }
+    return value.toString();
+  }
 }

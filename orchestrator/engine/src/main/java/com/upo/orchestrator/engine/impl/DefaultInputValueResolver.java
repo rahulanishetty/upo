@@ -18,6 +18,14 @@ import jakarta.inject.Singleton;
 @Singleton
 public class DefaultInputValueResolver implements InputValueResolver {
 
+  public static final String TYPE_FIELD = "__@type";
+
+  private final Map<String, InputValueResolver> customResolvers;
+
+  public DefaultInputValueResolver() {
+    this.customResolvers = Map.of("arrayTransform", new ArrayTransformResolver(this));
+  }
+
   @Override
   public ResolvableValue resolve(Object input) {
     if (input == null) {
@@ -46,6 +54,13 @@ public class DefaultInputValueResolver implements InputValueResolver {
   private ResolvableValue resolveMap(Map<?, ?> map) {
     if (map.isEmpty()) {
       return new StaticResolvableValue(Collections.emptyMap());
+    }
+    Object type = map.get(TYPE_FIELD);
+    if (type instanceof String typeStr) {
+      InputValueResolver inputValueResolver = customResolvers.get(typeStr);
+      if (inputValueResolver != null) {
+        return inputValueResolver.resolve(map);
+      }
     }
     Map<String, Object> staticValues = new LinkedHashMap<>(map.size());
     Map<String, ResolvableValue> dynamicValues = new LinkedHashMap<>();
