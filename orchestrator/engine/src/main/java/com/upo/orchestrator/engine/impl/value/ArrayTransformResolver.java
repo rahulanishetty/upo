@@ -118,9 +118,9 @@ public class ArrayTransformResolver implements InputValueResolver {
     private CompositeVariableView createVariableViewWithItem(
         Object item, VariableContainer original) {
       CompositeVariableView view = new CompositeVariableView();
-      VariableContainer variableContainer = new ImmutableVariableContainer();
-      variableContainer.restoreVariable("item", null, item);
-      view.addVariables(variableContainer);
+      VariableContainer itemContainer = new ImmutableVariableContainer();
+      itemContainer.restoreVariable("item", null, item);
+      view.addVariables(itemContainer);
       view.addVariables(original);
       return view;
     }

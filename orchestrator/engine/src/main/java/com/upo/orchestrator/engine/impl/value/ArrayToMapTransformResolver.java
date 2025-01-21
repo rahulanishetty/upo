@@ -96,9 +96,9 @@ public class ArrayToMapTransformResolver implements InputValueResolver {
     private CompositeVariableView createVariableViewWithItem(
         Object item, VariableContainer original) {
       CompositeVariableView view = new CompositeVariableView();
-      VariableContainer variable = new ImmutableVariableContainer();
-      variable.restoreVariable("item", null, item);
-      view.addVariables(variable);
+      VariableContainer itemContainer = new ImmutableVariableContainer();
+      itemContainer.restoreVariable("item", null, item);
+      view.addVariables(itemContainer);
       view.addVariables(original);
       return view;
     }
