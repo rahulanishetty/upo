@@ -7,11 +7,15 @@
 */
 package com.upo.orchestrator.engine.impl.value;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.upo.orchestrator.engine.ResolvableValue;
+import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.utilities.ds.Pair;
 
 /**
  * An optimized implementation of ResolvableValue for Map structures that separates static and
@@ -48,6 +52,15 @@ public class OptimizedMapResolvableValue implements ResolvableValue {
       } else {
         result.put(entry.getKey(), evaluate);
       }
+    }
+    return result;
+  }
+
+  @Override
+  public Set<Pair<String, Variable.Type>> getVariableDependencies() {
+    Set<Pair<String, Variable.Type>> result = new HashSet<>();
+    for (ResolvableValue value : dynamicValues.values()) {
+      result.addAll(value.getVariableDependencies());
     }
     return result;
   }

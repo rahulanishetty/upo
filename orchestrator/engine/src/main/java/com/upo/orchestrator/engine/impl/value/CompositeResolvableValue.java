@@ -7,10 +7,14 @@
 */
 package com.upo.orchestrator.engine.impl.value;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.upo.orchestrator.engine.ResolvableValue;
+import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.utilities.ds.Pair;
 
 /**
  * Combines multiple ResolvableValue implementations into a single value. Used for strings that
@@ -33,5 +37,14 @@ public class CompositeResolvableValue implements ResolvableValue {
     }
 
     return result.toString();
+  }
+
+  @Override
+  public Set<Pair<String, Variable.Type>> getVariableDependencies() {
+    Set<Pair<String, Variable.Type>> result = new HashSet<>();
+    for (ResolvableValue part : parts) {
+      result.addAll(part.getVariableDependencies());
+    }
+    return result;
   }
 }

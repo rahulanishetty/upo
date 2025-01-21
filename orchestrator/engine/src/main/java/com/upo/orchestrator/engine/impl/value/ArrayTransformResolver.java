@@ -7,18 +7,13 @@
 */
 package com.upo.orchestrator.engine.impl.value;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import com.upo.orchestrator.engine.ImmutableVariableContainer;
-import com.upo.orchestrator.engine.InputValueResolver;
-import com.upo.orchestrator.engine.ResolvableValue;
-import com.upo.orchestrator.engine.VariableContainer;
+import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.impl.CompositeVariableView;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.utilities.ds.CollectionUtils;
+import com.upo.utilities.ds.Pair;
 
 /**
  * Resolver that handles array transformations in process definitions. This resolver enables
@@ -114,6 +109,17 @@ public class ArrayTransformResolver implements InputValueResolver {
           }
         } finally {
           context.setVariableContainer(original);
+        }
+      }
+      return result;
+    }
+
+    @Override
+    public Set<Pair<String, Variable.Type>> getVariableDependencies() {
+      Set<Pair<String, Variable.Type>> result = new HashSet<>(source.getVariableDependencies());
+      for (Pair<String, Variable.Type> itemDependency : item.getVariableDependencies()) {
+        if (!Objects.equals("item", itemDependency.getFirstElement())) {
+          result.add(itemDependency);
         }
       }
       return result;

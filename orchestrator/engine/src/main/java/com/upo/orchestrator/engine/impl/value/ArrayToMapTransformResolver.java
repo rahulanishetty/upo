@@ -7,18 +7,13 @@
 */
 package com.upo.orchestrator.engine.impl.value;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import com.upo.orchestrator.engine.ImmutableVariableContainer;
-import com.upo.orchestrator.engine.InputValueResolver;
-import com.upo.orchestrator.engine.ResolvableValue;
-import com.upo.orchestrator.engine.VariableContainer;
+import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.impl.CompositeVariableView;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.utilities.ds.CollectionUtils;
+import com.upo.utilities.ds.Pair;
 
 public class ArrayToMapTransformResolver implements InputValueResolver {
 
@@ -101,6 +96,22 @@ public class ArrayToMapTransformResolver implements InputValueResolver {
         } finally {
          // Restore original scope
           context.setVariableContainer(original);
+        }
+      }
+      return result;
+    }
+
+    @Override
+    public Set<Pair<String, Variable.Type>> getVariableDependencies() {
+      Set<Pair<String, Variable.Type>> result = new HashSet<>(source.getVariableDependencies());
+      for (Pair<String, Variable.Type> itemDependency : keyExpr.getVariableDependencies()) {
+        if (!Objects.equals("item", itemDependency.getFirstElement())) {
+          result.add(itemDependency);
+        }
+      }
+      for (Pair<String, Variable.Type> itemDependency : valueExpr.getVariableDependencies()) {
+        if (!Objects.equals("item", itemDependency.getFirstElement())) {
+          result.add(itemDependency);
         }
       }
       return result;

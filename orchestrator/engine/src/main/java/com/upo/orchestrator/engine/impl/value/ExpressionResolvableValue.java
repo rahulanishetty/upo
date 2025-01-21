@@ -10,15 +10,15 @@ package com.upo.orchestrator.engine.impl.value;
 import static com.upo.orchestrator.engine.impl.value.GroovyScriptCompiler.evaluateScript;
 import static com.upo.orchestrator.engine.impl.value.ValueParser.VAR_PATTERN;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 
 import com.upo.orchestrator.engine.ResolvableValue;
+import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.VariableContainer;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.utilities.ds.CollectionUtils;
+import com.upo.utilities.ds.Pair;
 import com.upo.utilities.json.path.JsonPath;
 
 import groovy.lang.Script;
@@ -42,6 +42,15 @@ public class ExpressionResolvableValue implements ResolvableValue {
     Map<String, Object> variables =
         CollectionUtils.transformValueInMap(this.variables, variableContainer::readVariable, true);
     return evaluateScript(compiledScript, variables);
+  }
+
+  @Override
+  public Set<Pair<String, Variable.Type>> getVariableDependencies() {
+    Set<Pair<String, Variable.Type>> result = new HashSet<>();
+    for (JsonPath value : variables.values()) {
+      result.add(VariableResolvableValue.fromJsonPath(value));
+    }
+    return result;
   }
 
   private ProcessedExpressionResult processExpression(String originalExpression) {

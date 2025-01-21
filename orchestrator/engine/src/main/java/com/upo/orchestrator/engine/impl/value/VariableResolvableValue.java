@@ -7,8 +7,13 @@
 */
 package com.upo.orchestrator.engine.impl.value;
 
+import java.util.Collections;
+import java.util.Set;
+
 import com.upo.orchestrator.engine.ResolvableValue;
+import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.utilities.ds.Pair;
 import com.upo.utilities.json.path.JsonPath;
 
 /** ResolvableValue implementation for variable references. */
@@ -26,5 +31,17 @@ public class VariableResolvableValue implements ResolvableValue {
   @Override
   public Object evaluate(ProcessInstance context) {
     return context.getVariableContainer().readVariable(variablePath);
+  }
+
+  @Override
+  public Set<Pair<String, Variable.Type>> getVariableDependencies() {
+    Pair<String, Variable.Type> pair = fromJsonPath(variablePath);
+    return Collections.singleton(pair);
+  }
+
+  public static Pair<String, Variable.Type> fromJsonPath(JsonPath jsonPath) {
+    String taskId = jsonPath.getToken(0);
+    Variable.Type type = Variable.Type.fromKey(jsonPath.getToken(1));
+    return Pair.of(taskId, type);
   }
 }

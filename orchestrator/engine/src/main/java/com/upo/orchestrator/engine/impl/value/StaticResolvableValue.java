@@ -7,8 +7,13 @@
 */
 package com.upo.orchestrator.engine.impl.value;
 
+import java.util.Collections;
+import java.util.Set;
+
 import com.upo.orchestrator.engine.ResolvableValue;
+import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.utilities.ds.Pair;
 
 /** Represents a static value that doesn't need resolution. */
 public class StaticResolvableValue implements ResolvableValue {
@@ -25,5 +30,10 @@ public class StaticResolvableValue implements ResolvableValue {
   @Override
   public Object evaluate(ProcessInstance context) {
     return value;
+  }
+
+  @Override
+  public Set<Pair<String, Variable.Type>> getVariableDependencies() {
+    return Collections.emptySet();
   }
 }

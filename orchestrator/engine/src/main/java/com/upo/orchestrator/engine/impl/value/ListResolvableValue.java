@@ -8,10 +8,14 @@
 package com.upo.orchestrator.engine.impl.value;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.upo.orchestrator.engine.ResolvableValue;
+import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.utilities.ds.Pair;
 
 /** Handles resolution of List structures, resolving each element independently. */
 public class ListResolvableValue implements ResolvableValue {
@@ -29,6 +33,15 @@ public class ListResolvableValue implements ResolvableValue {
       if (item != null) {
         result.add(item);
       }
+    }
+    return result;
+  }
+
+  @Override
+  public Set<Pair<String, Variable.Type>> getVariableDependencies() {
+    Set<Pair<String, Variable.Type>> result = new HashSet<>();
+    for (ResolvableValue value : values) {
+      result.addAll(value.getVariableDependencies());
     }
     return result;
   }
