@@ -23,7 +23,10 @@ public class DefaultInputValueResolver implements InputValueResolver {
   private final Map<String, InputValueResolver> customResolvers;
 
   public DefaultInputValueResolver() {
-    this.customResolvers = Map.of("arrayTransform", new ArrayTransformResolver(this));
+    this.customResolvers =
+        Map.of(
+            "arrayTransformer", new ArrayTransformResolver(this),
+            "arrayToMapTransformer", new ArrayToMapTransformResolver(this));
   }
 
   @Override
