@@ -8,6 +8,7 @@
 package com.upo.orchestrator.engine.impl.value;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -63,14 +64,17 @@ public class ArrayTransformResolver implements InputValueResolver {
    //noinspection unchecked
     Map<String, Object> input = (Map<String, Object>) inputObj;
     String source = CollectionUtils.getStringValue(input, "source");
-    if (source == null) {
-      return null;
+    ResolvableValue sourceValue;
+    if (source != null) {
+      sourceValue = resolver.resolve(source);
+    } else {
+      sourceValue = new StaticResolvableValue(Collections.singletonList(null));
     }
-    Object item = input.get("item");
+    Object item = CollectionUtils.getValue(input, "item");
     if (item == null) {
       return null;
     }
-    return new ArrayTransformValue(resolver.resolve(source), resolver.resolve(item));
+    return new ArrayTransformValue(sourceValue, resolver.resolve(item));
   }
 
   /**

@@ -95,7 +95,7 @@ public class CompositeVariableView implements VariableContainer {
   @Override
   public Object readVariable(JsonPath jsonPath) {
     for (VariableContainer container : containers) {
-      Object value = jsonPath.read(container);
+      Object value = container.readVariable(jsonPath);
       if (value != null) {
         return value;
       }

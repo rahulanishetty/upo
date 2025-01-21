@@ -63,19 +63,32 @@ public class CollectionUtils {
     return transformMap(map, Function.identity(), function);
   }
 
+  public static <K, V1, V2> Map<K, V2> transformValueInMap(
+      Map<K, V1> map, Function<V1, V2> function, boolean includeNull) {
+    return transformMap(map, Function.identity(), function, includeNull);
+  }
+
   public static <K1, V1, K2, V2> Map<K2, V2> transformMap(
       Map<K1, V1> map, Function<K1, K2> keyFunction, Function<V1, V2> valueFunction) {
+    return transformMap(map, keyFunction, valueFunction, false);
+  }
+
+  public static <K1, V1, K2, V2> Map<K2, V2> transformMap(
+      Map<K1, V1> map,
+      Function<K1, K2> keyFunction,
+      Function<V1, V2> valueFunction,
+      boolean includeNull) {
     if (isEmpty(map)) {
       return Collections.emptyMap();
     }
     Map<K2, V2> result = new LinkedHashMap<>();
     for (Map.Entry<K1, V1> entry : map.entrySet()) {
       K2 k2 = keyFunction.apply(entry.getKey());
-      if (k2 == null) {
+      if (k2 == null && !includeNull) {
         continue;
       }
       V2 v2 = valueFunction.apply(entry.getValue());
-      if (v2 == null) {
+      if (v2 == null && !includeNull) {
         continue;
       }
       result.put(k2, v2);
@@ -108,11 +121,15 @@ public class CollectionUtils {
     return result;
   }
 
-  public static <K, V> String getStringValue(Map<K, V> input, K key) {
+  public static <K, V> Object getValue(Map<K, V> input, K key) {
     if (isEmpty(input)) {
       return null;
     }
-    V value = input.get(key);
+    return input.get(key);
+  }
+
+  public static <K, V> String getStringValue(Map<K, V> input, K key) {
+    Object value = getValue(input, key);
     if (value == null) {
       return null;
     }

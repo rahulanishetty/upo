@@ -7,6 +7,7 @@
 */
 package com.upo.orchestrator.engine.impl.value;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,11 +33,23 @@ public class ArrayToMapTransformResolver implements InputValueResolver {
    //noinspection unchecked
     Map<String, Object> input = (Map<String, Object>) inputObj;
     String source = CollectionUtils.getStringValue(input, "source");
-    Object key = input.get("key");
-    Object value = input.get("value");
+    ResolvableValue sourceValue;
+    if (source != null) {
+      sourceValue = resolver.resolve(source);
+    } else {
+      sourceValue = new StaticResolvableValue(Collections.singletonList(null));
+    }
+    Object key = CollectionUtils.getValue(input, "key");
+    if (key == null) {
+      return null;
+    }
+    Object value = CollectionUtils.getValue(input, "value");
+    if (value == null) {
+      return null;
+    }
 
     return new ArrayToMapTransformValue(
-        resolver.resolve(source), resolver.resolve(key), resolver.resolve(value));
+        sourceValue, resolver.resolve(key), resolver.resolve(value));
   }
 
   /**
