@@ -93,6 +93,11 @@ public class VariableContainerImpl implements VariableContainer {
   }
 
   @Override
+  public boolean containsVariable(String taskId, Variable.Type type) {
+    return getVariableInternal(taskId, type) != null;
+  }
+
+  @Override
   public Object readVariable(JsonPath jsonPath) {
     String taskId = jsonPath.getToken(0);
     if (!RESERVED_KEYS.contains(taskId)) {

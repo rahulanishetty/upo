@@ -106,6 +106,11 @@ public class ImmutableVariableContainer implements VariableContainer {
   }
 
   @Override
+  public boolean containsVariable(String taskId, Variable.Type type) {
+    return getVariable(taskId, type) != null;
+  }
+
+  @Override
   public Object readVariable(JsonPath jsonPath) {
     return jsonPath.read(variables);
   }

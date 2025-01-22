@@ -64,6 +64,15 @@ public interface VariableContainer {
   Object getVariable(String taskId, Variable.Type type);
 
   /**
+   * Checks if variable data exists for a specific task and type.
+   *
+   * @param taskId identifier of the task
+   * @param type type of variable to retrieve
+   * @return if found - true, false otherwise
+   */
+  boolean containsVariable(String taskId, Variable.Type type);
+
+  /**
    * Retrieves variable data for a specific json path.
    *
    * @param jsonPath processed json path

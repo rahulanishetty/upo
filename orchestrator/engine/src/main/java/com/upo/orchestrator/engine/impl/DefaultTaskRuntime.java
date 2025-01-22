@@ -18,14 +18,28 @@ import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.orchestrator.engine.services.*;
 import com.upo.utilities.ds.CollectionUtils;
-import com.upo.utilities.filter.impl.FilterEvaluator;
+import com.upo.utilities.ds.Pair;
 
 public abstract class DefaultTaskRuntime implements TaskRuntime {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskRuntime.class);
 
   private String taskId;
-  private FilterEvaluator<ProcessInstance> evaluator;
+  private ResolvableValue inputs;
+  private Set<Pair<String, Variable.Type>> dependencies;
+
+  public void setTaskId(String taskId) {
+    this.taskId = taskId;
+  }
+
+  public void setInputs(Object inputs) {
+    this.inputs = DefaultInputValueResolver.getInstance().resolve(inputs);
+    if (this.inputs == null) {
+      this.dependencies = null;
+    } else {
+      this.dependencies = this.inputs.getVariableDependencies();
+    }
+  }
 
   @Override
   public Next execute(ProcessInstance processInstance) {
@@ -46,17 +60,59 @@ public abstract class DefaultTaskRuntime implements TaskRuntime {
   }
 
   private ExecutionResult _execute(ProcessInstance processInstance) {
+    loadMissingReferencedVariables(processInstance);
     ExecutionResult executionResult = null;
     try {
-      if (evaluator == null || evaluator.evaluate(processInstance)) {
-        executionResult = doExecute(processInstance);
-      } else {
-        executionResult = ExecutionResult.continueWithVariables(List.of(skippedInput()));
-      }
+      executionResult = doExecute(processInstance);
     } catch (Throwable th) {
       executionResult = toFailure(processInstance, th);
     }
     return executionResult;
+  }
+
+  /**
+   * Loads missing referenced variables from persistent storage into the process instance's memory.
+   *
+   * <p>This method checks if all variables required by the current operation (tracked in
+   * dependencies) are available in the process instance's variable container. If any required
+   * variables are missing, it loads them from the persistent variable store.
+   *
+   * @param processInstance The current process instance requiring variable access
+   */
+  private void loadMissingReferencedVariables(ProcessInstance processInstance) {
+    if (CollectionUtils.isEmpty(dependencies)) {
+      return;
+    }
+
+    VariableContainer variableContainer = processInstance.getVariableContainer();
+    Set<String> missingVariableIds = new HashSet<>();
+
+   // Identify which required variables are missing from memory
+    for (Pair<String, Variable.Type> dependency : dependencies) {
+      boolean present =
+          variableContainer.containsVariable(
+              dependency.getFirstElement(), dependency.getSecondElement());
+      if (present) {
+        continue;
+      }
+      missingVariableIds.add(
+          ProcessVariable.getId(
+              processInstance, dependency.getFirstElement(), dependency.getSecondElement()));
+    }
+
+   // Bulk load missing variables from persistent store
+    if (CollectionUtils.isNotEmpty(missingVariableIds)) {
+      VariableStore variableStore = getServices(processInstance).getVariableStore();
+      Map<String, ProcessVariable> loadedVariables = variableStore.findByIds(missingVariableIds);
+
+     // Restore loaded variables into process instance memory
+      if (CollectionUtils.isNotEmpty(loadedVariables)) {
+        for (ProcessVariable variable : loadedVariables.values()) {
+          variableContainer.restoreVariable(
+              variable.getTaskId(), variable.getType(), variable.getPayload());
+        }
+      }
+    }
   }
 
   protected abstract ExecutionResult doExecute(ProcessInstance processInstance);

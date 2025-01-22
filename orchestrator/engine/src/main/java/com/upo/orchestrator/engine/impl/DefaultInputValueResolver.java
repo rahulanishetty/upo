@@ -13,20 +13,22 @@ import com.upo.orchestrator.engine.InputValueResolver;
 import com.upo.orchestrator.engine.ResolvableValue;
 import com.upo.orchestrator.engine.impl.value.*;
 
-import jakarta.inject.Singleton;
-
-@Singleton
 public class DefaultInputValueResolver implements InputValueResolver {
 
   public static final String TYPE_FIELD = "__@type";
+  private static final DefaultInputValueResolver INSTANCE = new DefaultInputValueResolver();
 
   private final Map<String, InputValueResolver> customResolvers;
 
-  public DefaultInputValueResolver() {
+  private DefaultInputValueResolver() {
     this.customResolvers =
         Map.of(
             "arrayTransformer", new ArrayTransformResolver(this),
             "arrayToMapTransformer", new ArrayToMapTransformResolver(this));
+  }
+
+  public static DefaultInputValueResolver getInstance() {
+    return INSTANCE;
   }
 
   @Override

@@ -24,7 +24,7 @@ public class DefaultInputValueResolverDependenciesTest {
 
   @BeforeEach
   void setUp() {
-    resolver = new DefaultInputValueResolver();
+    resolver = DefaultInputValueResolver.getInstance();
   }
 
   @Test

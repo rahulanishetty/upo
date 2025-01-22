@@ -85,6 +85,16 @@ public class CompositeVariableView implements VariableContainer {
     return null;
   }
 
+  @Override
+  public boolean containsVariable(String taskId, Variable.Type type) {
+    for (VariableContainer container : containers) {
+      if (container.containsVariable(taskId, type)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * reads for a path across all registered Variables instances. Returns the first matching value
    * found, searching Variables in the order they were added.

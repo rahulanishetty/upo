@@ -49,10 +49,14 @@ public class ProcessVariable implements Variable {
   }
 
   public void initId(ProcessInstance processInstance) {
+    setId(getId(processInstance, taskId, type));
+  }
+
+  public static String getId(ProcessInstance processInstance, String taskId, Type type) {
     String rootInstanceId = processInstance.getRootId();
     if (rootInstanceId == null || rootInstanceId.isEmpty()) {
       rootInstanceId = processInstance.getId();
     }
-    setId(rootInstanceId + "/" + processInstance.getId() + "/" + taskId + "/" + type.getKey());
+    return rootInstanceId + "/" + processInstance.getId() + "/" + taskId + "/" + type.getKey();
   }
 }

@@ -25,6 +25,10 @@ public class CollectionUtils {
     return !isEmpty(collection);
   }
 
+  public static boolean isNotEmpty(Map<?, ?> map) {
+    return !isEmpty(map);
+  }
+
   public static <T1, T2> List<T2> transformToList(
       Collection<T1> collection, Function<T1, T2> function) {
     if (isEmpty(collection)) {
