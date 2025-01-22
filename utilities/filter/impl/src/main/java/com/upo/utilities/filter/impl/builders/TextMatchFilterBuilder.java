@@ -10,10 +10,7 @@ package com.upo.utilities.filter.impl.builders;
 import java.util.regex.Pattern;
 
 import com.upo.utilities.filter.api.*;
-import com.upo.utilities.filter.impl.Field;
-import com.upo.utilities.filter.impl.FilterBuilder;
-import com.upo.utilities.filter.impl.FilterContext;
-import com.upo.utilities.filter.impl.FilterEvaluator;
+import com.upo.utilities.filter.impl.*;
 
 /**
  * Builds evaluators for text matching filters (REGEX, IREGEX, CONTAINS, ICONTAINS). This builder
@@ -29,8 +26,38 @@ public class TextMatchFilterBuilder implements FilterBuilder {
     }
 
     Field<Type> field = context.resolveField(textFilter.getField());
-    String pattern = textFilter.getPattern();
+    ComparableValue<?> comparable = field.toComparable(textFilter.getPattern());
 
+    if (comparable instanceof RecordAware<?>) {
+     //noinspection unchecked
+      RecordAware<Type> recordAware = (RecordAware<Type>) comparable;
+      return switch (filter.getType()) {
+        case RegexFilter.TYPE ->
+            record -> {
+              String pattern = recordAware.resolve(record).toString();
+              return buildRegexEvaluator(field, pattern, false).evaluate(record);
+            };
+        case InsensitiveRegexFilter.TYPE ->
+            record -> {
+              String pattern = recordAware.resolve(record).toString();
+              return buildRegexEvaluator(field, pattern, true).evaluate(record);
+            };
+        case ContainsFilter.TYPE ->
+            record -> {
+              String pattern = recordAware.resolve(record).toString();
+              return buildContainsEvaluator(field, pattern, false).evaluate(record);
+            };
+        case InsensitiveContainsFilter.TYPE ->
+            record -> {
+              String pattern = recordAware.resolve(record).toString();
+              return buildContainsEvaluator(field, pattern, true).evaluate(record);
+            };
+        default ->
+            throw new IllegalArgumentException("Unknown text match type: " + filter.getType());
+      };
+    }
+
+    String pattern = comparable.toString();
     return switch (filter.getType()) {
       case RegexFilter.TYPE -> buildRegexEvaluator(field, pattern, false);
       case InsensitiveRegexFilter.TYPE -> buildRegexEvaluator(field, pattern, true);

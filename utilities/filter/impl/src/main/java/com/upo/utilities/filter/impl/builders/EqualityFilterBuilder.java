@@ -47,8 +47,14 @@ public class EqualityFilterBuilder implements FilterBuilder {
     ComparableValue<?> compareValue = field.toComparable(filter.getValue());
 
     return record -> {
+     //noinspection unchecked
+      var valueToCompare =
+          compareValue instanceof RecordAware<?> recordAware
+              ? ((RecordAware<Type>) recordAware).resolve(record)
+              : compareValue;
+
       Collection<ComparableValue<?>> values = field.resolveValues(record);
-      return values.stream().anyMatch(value -> value.equals(compareValue));
+      return values.stream().anyMatch(value -> value.equals(valueToCompare));
     };
   }
 
@@ -70,9 +76,27 @@ public class EqualityFilterBuilder implements FilterBuilder {
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
 
+   // If any value is RecordAware, we need to resolve at runtime
+    boolean hasRecordAware = compareValues.stream().anyMatch(RecordAware.class::isInstance);
+    if (!hasRecordAware) {
+      return record -> {
+        Collection<ComparableValue<?>> values = field.resolveValues(record);
+        return values.stream().anyMatch(compareValues::contains);
+      };
+    }
     return record -> {
+     //noinspection unchecked
+      Set<ComparableValue<?>> resolvedCompareValues =
+          compareValues.stream()
+              .map(
+                  compareValue ->
+                      compareValue instanceof RecordAware<?> recordAware
+                          ? ((RecordAware<Type>) recordAware).resolve(record)
+                          : compareValue)
+              .collect(Collectors.toSet());
+
       Collection<ComparableValue<?>> values = field.resolveValues(record);
-      return values.stream().anyMatch(compareValues::contains);
+      return values.stream().anyMatch(resolvedCompareValues::contains);
     };
   }
 }

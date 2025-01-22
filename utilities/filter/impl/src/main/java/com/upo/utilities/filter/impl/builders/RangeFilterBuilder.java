@@ -32,13 +32,26 @@ public class RangeFilterBuilder implements FilterBuilder {
     ComparableValue<?> toValue =
         rangeFilter.getTo() != null ? field.toComparable(rangeFilter.getTo()) : null;
 
-    return record ->
-        evaluateRange(
-            field.resolveValues(record),
-            fromValue,
-            toValue,
-            rangeFilter.isFromInclusive(),
-            rangeFilter.isToInclusive());
+    return record -> {
+     // Resolve record-aware values if needed
+     //noinspection unchecked
+      var resolvedFromValue =
+          fromValue instanceof RecordAware<?> fromAware
+              ? ((RecordAware<Type>) fromAware).resolve(record)
+              : fromValue;
+     //noinspection unchecked
+      var resolvedToValue =
+          toValue instanceof RecordAware<?> toAware
+              ? ((RecordAware<Type>) toAware).resolve(record)
+              : toValue;
+
+      return evaluateRange(
+          field.resolveValues(record),
+          resolvedFromValue,
+          resolvedToValue,
+          rangeFilter.isFromInclusive(),
+          rangeFilter.isToInclusive());
+    };
   }
 
   /**

@@ -108,15 +108,15 @@ public interface ComparableValue<Value extends Comparable<Value>>
     return new NumberComparable<>(value);
   }
 
-  static NumberComparable<Integer> fromBoolean(boolean value) {
-    return new NumberComparable<>(value ? 1 : 0);
+  static BooleanComparable fromBoolean(boolean value) {
+    return new BooleanComparable(value);
   }
 
-  static NumberComparable<Integer> fromBoolean(Boolean value) {
+  static BooleanComparable fromBoolean(Boolean value) {
     if (value == null) {
       return null;
     }
-    return new NumberComparable<>(Boolean.TRUE.equals(value) ? 1 : 0);
+    return new BooleanComparable(value);
   }
 
   class StringComparable implements ComparableValue<String> {
@@ -153,6 +153,51 @@ public interface ComparableValue<Value extends Comparable<Value>>
       }
       return this.compareTo(comparable) == 0;
     }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+  }
+
+  class BooleanComparable implements ComparableValue<Boolean> {
+    private final Boolean value;
+
+    public BooleanComparable(Boolean value) {
+      this.value = value;
+    }
+
+    @Override
+    public int compareTo(ComparableValue<Boolean> other) {
+      if (other == null) {
+        throw new NullPointerException("Cannot compare with null");
+      }
+      if (!(other instanceof BooleanComparable booleanComparable)) {
+        return -1;
+      }
+      if (this.value == null) {
+        return booleanComparable.value == null ? 0 : -1;
+      }
+      return this.value.compareTo((booleanComparable.value));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (!(obj instanceof BooleanComparable comparable)) {
+        return false;
+      }
+      return compareTo(comparable) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(value);
+    }
+
+    @Override
+    public String toString() {
+      return Boolean.toString(value);
+    }
   }
 
   class NumberComparable<T extends Number & Comparable<T>> implements ComparableValue<T> {
@@ -188,6 +233,11 @@ public interface ComparableValue<Value extends Comparable<Value>>
       }
 
       return compare(this.number, numberComparable.number);
+    }
+
+    @Override
+    public String toString() {
+      return String.valueOf(number);
     }
 
     /**

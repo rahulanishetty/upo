@@ -8,7 +8,7 @@
 package com.upo.utilities.filter.impl.builders;
 
 import java.util.Collection;
-import java.util.function.Predicate;
+import java.util.function.IntPredicate;
 
 import com.upo.utilities.filter.api.*;
 import com.upo.utilities.filter.impl.*;
@@ -31,17 +31,26 @@ public class ComparisonFilterBuilder implements FilterBuilder {
     if (compareValue == null) {
       return (_) -> false;
     }
+   // Use in main method
+    IntPredicate predicate = getComparisonPredicate(filter.getType());
+    return record -> {
+     //noinspection unchecked
+      var compareValueToUse =
+          compareValue instanceof RecordAware<?> recordAware
+              ? ((RecordAware<Type>) recordAware).resolve(record)
+              : compareValue;
+      return evaluateComparison(field.resolveValues(record), compareValueToUse, predicate);
+    };
+  }
 
-    return switch (filter.getType()) {
-      case GreaterThanFilter.TYPE ->
-          record -> evaluateComparison(field.resolveValues(record), compareValue, v -> v > 0);
-      case LessThanFilter.TYPE ->
-          record -> evaluateComparison(field.resolveValues(record), compareValue, v -> v < 0);
-      case GreaterThanEqualsFilter.TYPE ->
-          record -> evaluateComparison(field.resolveValues(record), compareValue, v -> v >= 0);
-      case LessThanEqualsFilter.TYPE ->
-          record -> evaluateComparison(field.resolveValues(record), compareValue, v -> v <= 0);
-      default -> throw new IllegalArgumentException("Unknown comparison type: " + filter.getType());
+ // Extract common comparison logic
+  private IntPredicate getComparisonPredicate(String filterType) {
+    return switch (filterType) {
+      case GreaterThanFilter.TYPE -> v -> v > 0;
+      case LessThanFilter.TYPE -> v -> v < 0;
+      case GreaterThanEqualsFilter.TYPE -> v -> v >= 0;
+      case LessThanEqualsFilter.TYPE -> v -> v <= 0;
+      default -> throw new IllegalArgumentException("Unknown comparison type: " + filterType);
     };
   }
 
@@ -61,7 +70,7 @@ public class ComparisonFilterBuilder implements FilterBuilder {
   private boolean evaluateComparison(
       Collection<ComparableValue<?>> values,
       ComparableValue compareValue,
-      Predicate<Integer> comparator) {
+      IntPredicate comparator) {
     return values.stream().anyMatch(value -> comparator.test(value.compareTo(compareValue)));
   }
 }
