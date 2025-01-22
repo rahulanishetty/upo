@@ -28,6 +28,9 @@ public class ComparisonFilterBuilder implements FilterBuilder {
 
     Field<Type> field = context.resolveField(compFilter.getField());
     ComparableValue<?> compareValue = field.toComparable(compFilter.getValue());
+    if (compareValue == null) {
+      return (_) -> false;
+    }
 
     return switch (filter.getType()) {
       case GreaterThanFilter.TYPE ->

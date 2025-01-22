@@ -8,6 +8,7 @@
 package com.upo.utilities.filter.impl.builders;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,7 +65,10 @@ public class EqualityFilterBuilder implements FilterBuilder {
       InFilter filter, FilterContext<Type> context) {
     Field<Type> field = context.resolveField(filter.getField());
     Set<ComparableValue<?>> compareValues =
-        filter.getValues().stream().map(field::toComparable).collect(Collectors.toSet());
+        filter.getValues().stream()
+            .map(field::toComparable)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
 
     return record -> {
       Collection<ComparableValue<?>> values = field.resolveValues(record);
