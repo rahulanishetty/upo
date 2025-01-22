@@ -21,6 +21,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
   DefaultInputValueResolverTest.class,
   DefaultInputValueResolverDependenciesTest.class,
   ArrayTransformResolverTest.class,
-  ArrayToMapTransformResolverTest.class
+  ArrayToMapTransformResolverTest.class,
+  ProcessFilterEvaluationTest.class
 })
 public class InputValueResolverTestSuite {}
