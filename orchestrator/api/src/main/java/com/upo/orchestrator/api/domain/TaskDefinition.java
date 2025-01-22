@@ -113,17 +113,17 @@ public interface TaskDefinition {
   List<Transition> getNextTransitions();
 
   /**
-   * Returns the predicate that determines whether this task should be executed. If predicate
-   * evaluates to false, the task is skipped and execution proceeds to the next transition.
+   * Returns the condition that determines whether this task should be skipped. If the condition
+   * evaluates to true, the task is skipped and execution proceeds to the next transition. If null
+   * or evaluates to false, the task will be executed.
    *
-   * <p>The predicate can use: - Process variables - Previous task outputs - Runtime context to
-   * determine task execution.
+   * <p>The skip condition can use: - Process variables - Previous task outputs - Runtime context
    *
-   * <p>Example uses: - Skip retry task if max retries reached - Execute cleanup only if temporary
-   * resources were created - Run validation only for specific types of data - Conditional task
-   * execution based on configuration
+   * <p>Example uses: - Skip retry task if max retries reached - Skip cleanup if no temporary
+   * resources were created - Skip validation for certain data types - Skip task based on
+   * configuration flags
    *
-   * @return the execution predicate, null if task should always execute
+   * @return the skip condition, null if task should never be skipped
    */
-  Optional<Filter> getPredicate();
+  Optional<Filter> getSkipPredicate();
 }

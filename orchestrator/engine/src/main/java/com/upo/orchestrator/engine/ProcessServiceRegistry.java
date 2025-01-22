@@ -9,7 +9,9 @@ package com.upo.orchestrator.engine;
 
 public interface ProcessServiceRegistry {
 
-  void register(ExecutionStrategy strategy, ProcessServices processServices);
+  <T> void register(ExecutionStrategy strategy, Class<T> clz, T service);
 
   ProcessServices getServices(ExecutionStrategy strategy);
+
+  ProcessServices getCoreServices();
 }

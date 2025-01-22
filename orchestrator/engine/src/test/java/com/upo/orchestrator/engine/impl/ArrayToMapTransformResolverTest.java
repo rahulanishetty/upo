@@ -39,7 +39,7 @@ public class ArrayToMapTransformResolverTest {
   void setUp() {
    //noinspection resource
     MockitoAnnotations.openMocks(this);
-    resolver = DefaultInputValueResolver.getInstance();
+    resolver = new DefaultInputValueResolver();
    // Create a holder for the current variable container
     AtomicReference<VariableContainer> currentContainer = new AtomicReference<>(variableContainer);
 

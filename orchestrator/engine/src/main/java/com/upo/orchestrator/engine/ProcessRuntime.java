@@ -55,4 +55,7 @@ public interface ProcessRuntime {
 
   /** Creates an executor for specific execution strategy */
   ProcessExecutor createExecutor(ExecutionStrategy strategy);
+
+  /** Returns the core runtime services */
+  ProcessServices getCoreServices();
 }

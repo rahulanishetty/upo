@@ -79,6 +79,11 @@ public class ProcessRuntimeImpl implements ProcessRuntime {
     return new ProcessExecutorImpl(processServices, this, strategy);
   }
 
+  @Override
+  public ProcessServices getCoreServices() {
+    return processServiceRegistry.getCoreServices();
+  }
+
   private FilterEvaluator<Map<String, Object>> createProcessPredicate(
       ProcessDefinition processDefinition) {
     Optional<Filter> predicate = processDefinition.getPredicate();

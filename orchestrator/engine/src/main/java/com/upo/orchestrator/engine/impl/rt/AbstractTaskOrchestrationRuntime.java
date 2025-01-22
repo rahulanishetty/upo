@@ -5,7 +5,7 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-package com.upo.orchestrator.engine.impl;
+package com.upo.orchestrator.engine.impl.rt;
 
 import java.util.*;
 
@@ -13,32 +13,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.upo.orchestrator.engine.*;
+import com.upo.orchestrator.engine.impl.VariableUtils;
 import com.upo.orchestrator.engine.models.CompletionSignal;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.orchestrator.engine.services.*;
 import com.upo.utilities.ds.CollectionUtils;
-import com.upo.utilities.ds.Pair;
 
-public abstract class DefaultTaskRuntime implements TaskRuntime {
+/**
+ * Abstract base class that implements core task orchestration and execution flow while leaving
+ * task-specific execution details to concrete implementations.
+ */
+public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRuntime
+    implements TaskRuntime {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTaskRuntime.class);
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(AbstractTaskOrchestrationRuntime.class);
 
-  private String taskId;
-  private ResolvableValue inputs;
-  private Set<Pair<String, Variable.Type>> dependencies;
-
-  public void setTaskId(String taskId) {
-    this.taskId = taskId;
-  }
-
-  public void setInputs(Object inputs) {
-    this.inputs = DefaultInputValueResolver.getInstance().resolve(inputs);
-    if (this.inputs == null) {
-      this.dependencies = null;
-    } else {
-      this.dependencies = this.inputs.getVariableDependencies();
-    }
+  public AbstractTaskOrchestrationRuntime(ProcessRuntime parent, String taskId) {
+    super(parent, taskId);
   }
 
   @Override
@@ -63,7 +56,11 @@ public abstract class DefaultTaskRuntime implements TaskRuntime {
     VariableUtils.loadMissingReferencedVariables(processInstance, dependencies);
     ExecutionResult executionResult = null;
     try {
-      executionResult = doExecute(processInstance);
+      if (skipCondition == null || !skipCondition.evaluate(processInstance)) {
+        executionResult = doExecute(processInstance);
+      } else {
+        executionResult = ExecutionResult.continueWithVariables(List.of(skippedInput()));
+      }
     } catch (Throwable th) {
       executionResult = toFailure(processInstance, th);
     }
@@ -83,13 +80,13 @@ public abstract class DefaultTaskRuntime implements TaskRuntime {
 
   private Optional<Next> beforeTaskExecution(ProcessInstance processInstance) {
     ProcessServices processServices = getServices(processInstance);
-    EnvironmentProvider environmentProvider = processServices.getEnvironmentProvider();
+    EnvironmentProvider environmentProvider = processServices.getService(EnvironmentProvider.class);
     if (environmentProvider.isShutdownInProgress()) {
      // check if shutdown is in progress, if yes throw an event to resume from this task
       processInstance.setStatus(ExecutionResult.Status.WAIT);
       if (saveProcessInstance(processInstance, ExecutionResult.Status.CONTINUE)) {
         ExecutionLifecycleManager executionLifecycleManager =
-            processServices.getExecutionLifecycleManager();
+            processServices.getService(ExecutionLifecycleManager.class);
         executionLifecycleManager.resumeProcessFromTask(processInstance, this);
       }
       return Optional.of(Next.EMPTY);
@@ -108,7 +105,8 @@ public abstract class DefaultTaskRuntime implements TaskRuntime {
         return Optional.of(Next.EMPTY);
       }
     }
-    ExecutionLifecycleAuditor lifecycleAuditor = processServices.getLifecycleAuditor();
+    ExecutionLifecycleAuditor lifecycleAuditor =
+        processServices.getService(ExecutionLifecycleAuditor.class);
     lifecycleAuditor.beforeExecution(this, processInstance);
     return Optional.empty();
   }
@@ -131,7 +129,8 @@ public abstract class DefaultTaskRuntime implements TaskRuntime {
         }
       }
     }
-    ExecutionLifecycleAuditor lifecycleAuditor = getServices(processInstance).getLifecycleAuditor();
+    ExecutionLifecycleAuditor lifecycleAuditor =
+        getServices(processInstance).getService(ExecutionLifecycleAuditor.class);
     lifecycleAuditor.afterExecution(this, processInstance);
     return Optional.empty();
   }
@@ -148,7 +147,7 @@ public abstract class DefaultTaskRuntime implements TaskRuntime {
       return;
     }
     ProcessServices processServices = getServices(processInstance);
-    VariableStore variableStore = processServices.getVariableStore();
+    VariableStore variableStore = processServices.getService(VariableStore.class);
     for (ProcessVariable newVariable : newVariables) {
       newVariable.initId(processInstance);
     }
@@ -159,17 +158,13 @@ public abstract class DefaultTaskRuntime implements TaskRuntime {
   protected boolean saveProcessInstance(
       ProcessInstance processInstance, ExecutionResult.Status expectedStatus) {
     ProcessServices processServices = getServices(processInstance);
-    ProcessInstanceStore instanceStore = processServices.getInstanceStore();
+    ProcessInstanceStore instanceStore = processServices.getService(ProcessInstanceStore.class);
     if (instanceStore.save(processInstance, expectedStatus)) {
       processInstance.setTaskCountSinceLastFlush(0L);
       flushNewVariablesIfAny(processInstance);
       return true;
     }
     return false;
-  }
-
-  protected ProcessServices getServices(ProcessInstance processInstance) {
-    return processInstance.getProcessEnv().getProcessServices();
   }
 
   private Variable skippedInput() {

@@ -37,7 +37,7 @@ public class DefaultInputValueResolverTest {
   void setUp() {
    //noinspection resource
     MockitoAnnotations.openMocks(this);
-    resolver = DefaultInputValueResolver.getInstance();
+    resolver = new DefaultInputValueResolver();
     when(processInstance.getVariableContainer()).thenReturn(variableContainer);
   }
 

@@ -55,7 +55,7 @@ public class VariableUtils {
    // Bulk load missing variables from persistent store
     if (CollectionUtils.isNotEmpty(missingVariableIds)) {
       VariableStore variableStore =
-          processInstance.getProcessEnv().getProcessServices().getVariableStore();
+          processInstance.getProcessEnv().getProcessServices().getService(VariableStore.class);
       Map<String, ProcessVariable> loadedVariables = variableStore.findByIds(missingVariableIds);
 
      // Restore loaded variables into process instance memory

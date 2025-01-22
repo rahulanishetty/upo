@@ -15,29 +15,39 @@ import com.upo.orchestrator.engine.ExecutionStrategy;
 import com.upo.orchestrator.engine.ProcessServiceRegistry;
 import com.upo.orchestrator.engine.ProcessServices;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+
+@Singleton
 public class ProcessServiceRegistryImpl implements ProcessServiceRegistry {
 
-  private final Map<ExecutionStrategy, ProcessServices> registry;
+  private final Map<ExecutionStrategy, ProcessServicesImpl> registry;
+  private final ProcessServices coreRuntimeServices;
 
-  public ProcessServiceRegistryImpl() {
+  @Inject
+  public ProcessServiceRegistryImpl(
+      @Named("coreRuntimeServicesImpl") ProcessServices coreRuntimeServices) {
     this.registry = new ConcurrentHashMap<>();
+    this.coreRuntimeServices = coreRuntimeServices;
   }
 
   @Override
-  public void register(ExecutionStrategy strategy, ProcessServices processServices) {
+  public <T> void register(ExecutionStrategy strategy, Class<T> clz, T service) {
     Objects.requireNonNull(strategy, "strategy cannot be null");
-    ProcessServices existing =
-        this.registry.putIfAbsent(
-            strategy, Objects.requireNonNull(processServices, "processServices cannot be null"));
-    if (existing != null) {
-      throw new IllegalArgumentException(
-          "duplicate process services for strategy : " + strategy.name());
-    }
+    ProcessServicesImpl processServices =
+        registry.computeIfAbsent(strategy, _ -> new ProcessServicesImpl(coreRuntimeServices));
+    processServices.registerService(clz, service);
   }
 
   @Override
   public ProcessServices getServices(ExecutionStrategy strategy) {
     return Objects.requireNonNull(
         registry.get(strategy), "no process services found for strategy: " + strategy);
+  }
+
+  @Override
+  public ProcessServices getCoreServices() {
+    return coreRuntimeServices;
   }
 }

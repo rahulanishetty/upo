@@ -7,59 +7,21 @@
 */
 package com.upo.orchestrator.engine;
 
-import com.upo.orchestrator.engine.services.*;
-
 /**
- * Provides core services required for process execution. Acts as a central point of access for
- * process management, variable handling, and execution auditing services.
+ * Central service registry and locator for process execution services. Provides access to both
+ * fixed utility services and runtime-specific service implementations.
  */
 public interface ProcessServices {
 
   /**
-   * Returns the process instance store service. This service is responsible for: - Creating process
-   * instances - Loading/saving process instance state - Managing instance lifecycle - Handling
-   * parent-child relationships - Instance state persistence
+   * Retrieves a service implementation by its interface type. Services fall into two categories: 1.
+   * Fixed Services - Utility services with immutable implementations (e.g. InputValueResolver) 2.
+   * Runtime Services - Services with implementations that vary based on execution strategy (e.g.
+   * ProcessInstanceStore for local vs distributed execution)
    *
-   * @return process instance store service
+   * @param <T> The service interface type
+   * @param clz The class object representing the service interface
+   * @return The service implementation
    */
-  ProcessInstanceStore getInstanceStore();
-
-  /**
-   * Returns the variable store service. This service is responsible for: - Managing process
-   * variables - Variable state persistence - Variable resolution - Variable scoping - Variable
-   * cleanup
-   *
-   * @return variable manager service
-   */
-  VariableStore getVariableStore();
-
-  /**
-   * Returns the process manager service. This service is responsible for: - Managing process
-   * runtimes
-   *
-   * @return process manager service
-   */
-  ProcessManager getProcessManager();
-
-  /**
-   * Returns the execution lifecycle manager service. This service is responsible for: - spawning
-   * process instances - resuming process instances - signalling process instances
-   *
-   * @return process manager service
-   */
-  ExecutionLifecycleManager getExecutionLifecycleManager();
-
-  /**
-   * Returns the execution lifecycle auditor service. This service is responsible for: - Recording
-   * execution events - Capturing task inputs/outputs - Tracking state changes - Logging execution
-   * history - Maintaining audit trail
-   *
-   * @return execution lifecycle auditor service
-   */
-  ExecutionLifecycleAuditor getLifecycleAuditor();
-
-  /**
-   * @return environment provider service
-   */
-  EnvironmentProvider getEnvironmentProvider();
+  <T> T getService(Class<T> clz);
 }

@@ -14,6 +14,7 @@ import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.models.CompletionSignal;
 import com.upo.orchestrator.engine.models.ProcessEnv;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.orchestrator.engine.services.EnvironmentProvider;
 import com.upo.orchestrator.engine.services.ProcessInstanceStore;
 import com.upo.utilities.context.RequestContext;
 import com.upo.utilities.filter.impl.FilterEvaluator;
@@ -64,7 +65,7 @@ public class ProcessExecutorImpl implements ProcessExecutor {
   @Override
   public void signal(
       String processInstanceId, CompletionSignal signal, Map<String, Object> payload) {
-    ProcessInstanceStore instanceStore = processServices.getInstanceStore();
+    ProcessInstanceStore instanceStore = processServices.getService(ProcessInstanceStore.class);
     ProcessInstance processInstance = lookupProcessInstance(processInstanceId, instanceStore);
     executeTaskSequence(
         processInstance,
@@ -156,7 +157,7 @@ public class ProcessExecutorImpl implements ProcessExecutor {
     ProcessEnv processEnv = createProcessEnv();
     processInstance.setProcessEnv(processEnv);
     processInstance.setVariableContainer(createVariableContainer(processEnv));
-    ProcessInstanceStore instanceStore = processServices.getInstanceStore();
+    ProcessInstanceStore instanceStore = processServices.getService(ProcessInstanceStore.class);
     if (!instanceStore.save(processInstance)) {
       return null;
     }
@@ -186,7 +187,7 @@ public class ProcessExecutorImpl implements ProcessExecutor {
   private ProcessEnv createProcessEnv() {
     ProcessEnv processEnv = new ProcessEnv();
     Map<String, Object> envVariables =
-        processServices.getEnvironmentProvider().lookupEnvVariables();
+        processServices.getService(EnvironmentProvider.class).lookupEnvVariables();
     processEnv.setEnv(envVariables);
     RequestContext requestContext = RequestContext.get();
     if (requestContext != null) {
