@@ -31,6 +31,7 @@ public interface Filter {
    *   <li>{@code AND} - Logical AND of multiple filter conditions
    *   <li>{@code OR} - Logical OR of multiple filter conditions
    *   <li>{@code NOT} - Logical negation of a filter condition
+   *   <li>{@code NESTED} - Contextual filter condition on array objects
    * </ul>
    *
    * @return the filter type identifier
