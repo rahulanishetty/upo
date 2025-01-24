@@ -8,6 +8,7 @@
 package com.upo.orchestrator.engine.impl;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.upo.orchestrator.engine.TaskExecutionException;
@@ -186,6 +187,11 @@ public class VariableContainerImpl implements VariableContainer {
     boolean interrupted = false;
     try {
       return future.get();
+    } catch (ExecutionException eX) {
+      if (eX.getCause() instanceof TaskExecutionException taskExecutionException) {
+        throw taskExecutionException;
+      }
+      throw new TaskExecutionException(eX.getMessage(), eX.getCause());
     } catch (Exception eX) {
       if (eX instanceof InterruptedException) {
         interrupted = true;

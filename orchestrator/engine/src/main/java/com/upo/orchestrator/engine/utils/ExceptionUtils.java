@@ -9,7 +9,7 @@ package com.upo.orchestrator.engine.utils;
 
 public class ExceptionUtils {
 
-  public Throwable getRootCause(Throwable th) {
+  public static Throwable getRootCause(Throwable th) {
     if (th == null) {
       return null;
     }

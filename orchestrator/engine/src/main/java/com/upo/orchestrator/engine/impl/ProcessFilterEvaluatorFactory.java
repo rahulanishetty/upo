@@ -12,6 +12,7 @@ import java.util.Set;
 import com.upo.orchestrator.engine.InputValueResolver;
 import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.orchestrator.engine.utils.VariableUtils;
 import com.upo.utilities.ds.Pair;
 import com.upo.utilities.filter.api.Filter;
 import com.upo.utilities.filter.impl.FilterBuilderRegistry;

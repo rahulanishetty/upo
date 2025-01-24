@@ -5,13 +5,15 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-package com.upo.orchestrator.engine;
+package com.upo.orchestrator.engine.impl;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.upo.orchestrator.engine.Variable;
+import com.upo.orchestrator.engine.VariableContainer;
 import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.utilities.json.path.JsonPath;
 

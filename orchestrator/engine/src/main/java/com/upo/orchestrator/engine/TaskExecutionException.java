@@ -7,7 +7,11 @@
 */
 package com.upo.orchestrator.engine;
 
+import java.util.Collection;
+
 public class TaskExecutionException extends RuntimeException {
+
+  private Collection<Variable> variables;
 
   public TaskExecutionException(String message) {
     super(message);
@@ -15,5 +19,13 @@ public class TaskExecutionException extends RuntimeException {
 
   public TaskExecutionException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public Collection<Variable> getVariables() {
+    return variables;
+  }
+
+  public void setVariables(Collection<Variable> variables) {
+    this.variables = variables;
   }
 }

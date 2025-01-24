@@ -11,6 +11,7 @@ import java.util.*;
 
 import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.impl.CompositeVariableView;
+import com.upo.orchestrator.engine.impl.ImmutableVariableContainer;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.utilities.ds.CollectionUtils;
 import com.upo.utilities.ds.Pair;

@@ -13,11 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.upo.orchestrator.engine.*;
-import com.upo.orchestrator.engine.impl.VariableUtils;
 import com.upo.orchestrator.engine.models.CompletionSignal;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.orchestrator.engine.services.*;
+import com.upo.orchestrator.engine.utils.ExceptionUtils;
+import com.upo.orchestrator.engine.utils.VariableUtils;
 import com.upo.utilities.ds.CollectionUtils;
 
 /**
@@ -75,7 +76,27 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   }
 
   protected ExecutionResult toFailure(ProcessInstance processInstance, Throwable throwable) {
-    throw new UnsupportedOperationException("TODO Implement this!");
+    ExecutionResult executionResult = new ExecutionResult(ExecutionResult.Status.TERMINAL);
+    executionResult.setCompletionSignal(CompletionSignal.failure("task failed with exception"));
+    if (throwable instanceof TaskExecutionException taskExecutionException) {
+      executionResult.setVariables(taskExecutionException.getVariables());
+    } else {
+      Map<String, Object> payload = new HashMap<>(toErrorDetails(throwable));
+      payload.put("rootCause", toErrorDetails(ExceptionUtils.getRootCause(throwable)));
+      ProcessVariable processVariable = toVariable(processInstance, Variable.Type.ERROR, payload);
+      executionResult.setVariables(List.of(processVariable));
+    }
+    return executionResult;
+  }
+
+  protected Map<String, Object> toErrorDetails(Throwable throwable) {
+    if (throwable == null) {
+      return null;
+    }
+    Map<String, Object> errorDetails = new HashMap<>();
+    errorDetails.put("failureClass", throwable.getClass().getSimpleName());
+    errorDetails.put("message", throwable.getMessage());
+    return errorDetails;
   }
 
   private Optional<Next> beforeTaskExecution(ProcessInstance processInstance) {

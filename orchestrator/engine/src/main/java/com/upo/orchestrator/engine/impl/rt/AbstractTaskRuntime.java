@@ -12,6 +12,7 @@ import java.util.Set;
 import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.impl.ProcessFilterEvaluatorFactory;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.utilities.ds.Pair;
 import com.upo.utilities.filter.api.Filter;
 import com.upo.utilities.filter.impl.FilterEvaluator;
@@ -48,12 +49,21 @@ public abstract class AbstractTaskRuntime implements TaskRuntime {
 
   public void setSkipCondition(Filter filter) {
     if (filter != null) {
-      InputValueResolver inputValueResolver = getInputValueResolver();
       this.skipCondition =
-          ProcessFilterEvaluatorFactory.createEvaluator(filter, inputValueResolver);
+          ProcessFilterEvaluatorFactory.createEvaluator(filter, getInputValueResolver());
     } else {
       this.skipCondition = null;
     }
+  }
+
+  protected ProcessVariable toVariable(
+      ProcessInstance processInstance, Variable.Type type, Object payload) {
+    ProcessVariable processVariable = new ProcessVariable();
+    processVariable.setPayload(payload);
+    processVariable.setTaskId(taskId);
+    processVariable.setType(type);
+    processVariable.initId(processInstance);
+    return processVariable;
   }
 
   protected InputValueResolver getInputValueResolver() {
