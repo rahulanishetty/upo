@@ -32,6 +32,7 @@ public abstract class AbstractTaskRuntime implements TaskRuntime {
   protected FilterEvaluator<ProcessInstance> skipCondition;
   protected ResolvableValue inputs;
   protected Set<Pair<String, Variable.Type>> dependencies;
+  protected TransitionResolver outgoingTransitions;
 
   public AbstractTaskRuntime(ProcessRuntime parent, String taskId) {
     this.parent = parent;
@@ -54,6 +55,10 @@ public abstract class AbstractTaskRuntime implements TaskRuntime {
     } else {
       this.skipCondition = null;
     }
+  }
+
+  public void setOutgoingTransitions(TransitionResolver outgoingTransitions) {
+    this.outgoingTransitions = outgoingTransitions;
   }
 
   protected ProcessVariable toVariable(

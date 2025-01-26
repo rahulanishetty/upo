@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.upo.orchestrator.engine.models.CompletionSignal;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
 /**
@@ -36,14 +35,12 @@ public interface TaskRuntime {
    * operations - Handle external interactions - Control task execution (cancel, retry)
    *
    * @param processInstance instance containing execution state
-   * @param signal the signal being handled
    * @param payload additional data associated with this signal processing
    * @return Next containing IDs of tasks to execute next, empty if no further tasks
    * @throws IllegalArgumentException if signal type not supported
    * @throws IllegalStateException if signal not valid in current state
    */
-  Next handleSignal(
-      ProcessInstance processInstance, CompletionSignal signal, Map<String, Object> payload);
+  Next handleSignal(ProcessInstance processInstance, Map<String, Object> payload);
 
   /**
    * Represents the next task(s) to be executed in the process flow. Used to determine process

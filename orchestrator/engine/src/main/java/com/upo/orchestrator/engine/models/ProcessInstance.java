@@ -10,7 +10,7 @@ package com.upo.orchestrator.engine.models;
 import java.util.List;
 
 import com.alibaba.fastjson2.annotation.JSONField;
-import com.upo.orchestrator.engine.ExecutionResult;
+import com.upo.orchestrator.engine.ProcessFlowStatus;
 import com.upo.orchestrator.engine.VariableContainer;
 
 /**
@@ -58,7 +58,7 @@ public class ProcessInstance {
   private Long endTime;
 
   /** Status of current task */
-  private ExecutionResult.Status status;
+  private ProcessFlowStatus status;
 
   /** the child instances this instance needs to wait for completion, before resuming */
   private List<String> remainingChildInstances;
@@ -180,11 +180,11 @@ public class ProcessInstance {
     this.endTime = endTime;
   }
 
-  public ExecutionResult.Status getStatus() {
+  public ProcessFlowStatus getStatus() {
     return status;
   }
 
-  public void setStatus(ExecutionResult.Status status) {
+  public void setStatus(ProcessFlowStatus status) {
     this.status = status;
   }
 

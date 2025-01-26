@@ -12,14 +12,17 @@ import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.upo.orchestrator.api.domain.TransitionType;
 import com.upo.orchestrator.engine.*;
-import com.upo.orchestrator.engine.models.CompletionSignal;
+import com.upo.orchestrator.engine.impl.CompositeVariableView;
+import com.upo.orchestrator.engine.impl.ImmutableVariableContainer;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.orchestrator.engine.services.*;
 import com.upo.orchestrator.engine.utils.ExceptionUtils;
 import com.upo.orchestrator.engine.utils.VariableUtils;
 import com.upo.utilities.ds.CollectionUtils;
+import com.upo.utilities.filter.impl.FilterEvaluator;
 
 /**
  * Abstract base class that implements core task orchestration and execution flow while leaving
@@ -42,51 +45,201 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
      // short-circuited
       return next.get();
     }
-    ExecutionResult executionResult = _execute(processInstance);
-    return afterTaskExecution(processInstance, executionResult)
-        .orElseGet(() -> onTaskCompletion(processInstance, executionResult));
+    ProcessFlowResult processFlowResult = executeTaskAndResolveFlow(processInstance);
+    return afterTaskExecution(processInstance, processFlowResult)
+        .orElseGet(() -> onTaskCompletion(processInstance, processFlowResult));
   }
 
   @Override
-  public Next handleSignal(
-      ProcessInstance processInstance, CompletionSignal signal, Map<String, Object> payload) {
-    return onTaskCompletion(processInstance, ExecutionResult.continueWithNoVariables());
+  public Next handleSignal(ProcessInstance processInstance, Map<String, Object> payload) {
+    return onTaskCompletion(processInstance, null);
   }
 
-  private ExecutionResult _execute(ProcessInstance processInstance) {
+  private TaskResult _execute(ProcessInstance processInstance) {
     VariableUtils.loadMissingReferencedVariables(processInstance, dependencies);
-    ExecutionResult executionResult = null;
+    TaskResult taskResult = null;
     try {
       if (skipCondition == null || !skipCondition.evaluate(processInstance)) {
-        executionResult = doExecute(processInstance);
+        taskResult = doExecute(processInstance);
       } else {
-        executionResult = ExecutionResult.continueWithVariables(List.of(skippedInput()));
+        taskResult = TaskResult.continueWithVariables(List.of(skippedInput()));
       }
     } catch (Throwable th) {
-      executionResult = toFailure(processInstance, th);
+      taskResult = toError(processInstance, th);
     }
-    return executionResult;
+    return taskResult;
   }
 
-  protected abstract ExecutionResult doExecute(ProcessInstance processInstance);
+  protected abstract TaskResult doExecute(ProcessInstance processInstance);
+
+  /**
+   * Executes a task and determines subsequent process flow based on task result and available
+   * transitions. This method combines task execution with flow resolution to determine the next
+   * steps in the process.
+   *
+   * @param processInstance Current process instance being executed
+   * @return ProcessFlowResult containing task result, flow status, and available transitions
+   */
+  protected ProcessFlowResult executeTaskAndResolveFlow(ProcessInstance processInstance) {
+    TaskResult taskResult = _execute(processInstance);
+    return resolveProcessFlow(processInstance, taskResult);
+  }
+
+  /**
+   * Resolves process flow by evaluating task result and determining available transitions. The
+   * resolution process involves: 1. Handling wait states 2. Resolving available transitions 3.
+   * Finding matching transition based on task result 4. Determining final process flow status
+   *
+   * @param processInstance Current process instance
+   * @param taskResult Result from task execution
+   * @return ProcessFlowResult containing flow resolution details
+   */
+  private ProcessFlowResult resolveProcessFlow(
+      ProcessInstance processInstance, TaskResult taskResult) {
+    if (taskResult.getStatus() == TaskResult.Status.WAIT) {
+      return new ProcessFlowResult(taskResult, ProcessFlowStatus.WAIT, Collections.emptyList());
+    }
+   // Resolve all possible transitions
+    List<Transition> availableTransitions =
+        outgoingTransitions.resolveTransitions(this, processInstance, taskResult);
+   // Find the appropriate transition to follow
+    Optional<Transition> matchingTransition =
+        findMatchingTransition(processInstance, taskResult, availableTransitions);
+   // Determine flow status based on matching transition and task result
+    ProcessFlowStatus flowStatus = determineFlowStatus(matchingTransition.isPresent(), taskResult);
+    return new ProcessFlowResult(taskResult, flowStatus, availableTransitions);
+  }
+
+  /**
+   * Determines the process flow status based on transition availability and task result. The status
+   * hierarchy is: 1. CONTINUE if there's a matching transition 2. FAILED if task resulted in error
+   * 3. COMPLETED if no more transitions
+   *
+   * @param hasMatchingTransition Whether a matching transition was found
+   * @param taskResult Result from task execution
+   * @return Resolved ProcessFlowStatus
+   */
+  private static ProcessFlowStatus determineFlowStatus(
+      boolean hasMatchingTransition, TaskResult taskResult) {
+    if (hasMatchingTransition) {
+      return ProcessFlowStatus.CONTINUE;
+    }
+    return taskResult.getStatus() == TaskResult.Status.ERROR
+        ? ProcessFlowStatus.FAILED
+        : ProcessFlowStatus.COMPLETED;
+  }
+
+  /**
+   * Finds the matching transition to follow based on task result and transition conditions. Creates
+   * a temporary variable scope that includes task result variables for transition evaluation.
+   *
+   * @param processInstance Current process instance
+   * @param taskResult Result from task execution
+   * @param transitions Available transitions to evaluate
+   * @return Optional containing the matching transition, empty if no match found
+   */
+  private static Optional<Transition> findMatchingTransition(
+      ProcessInstance processInstance, TaskResult taskResult, List<Transition> transitions) {
+    boolean hasTemporaryScope = false;
+    VariableContainer original = processInstance.getVariableContainer();
+    try {
+     // Create temporary variable scope if task produced variables
+      if (CollectionUtils.isNotEmpty(taskResult.getVariables())) {
+        processInstance.setVariableContainer(
+            createTemporaryScopeWithTaskResults(taskResult, original));
+        hasTemporaryScope = true;
+      }
+      Transition matchingTransition =
+          evaluateTransitionsForMatch(processInstance, taskResult, transitions);
+      return Optional.ofNullable(matchingTransition);
+    } finally {
+     // Restore original variable scope
+      if (hasTemporaryScope) {
+        processInstance.setVariableContainer(original);
+      }
+    }
+  }
+
+  /**
+   * Evaluates transitions to find the first matching one based on task result and transition type.
+   * Evaluation order: 1. For CONTINUE status: evaluates CONDITIONAL transitions, remembers first
+   * DEFAULT 2. For ERROR status: evaluates ERROR transitions 3. Returns first matching transition
+   * or remembered DEFAULT
+   *
+   * @param processInstance Current process instance
+   * @param taskResult Result from task execution
+   * @param transitions Transitions to evaluate
+   * @return Matching transition or null if no match found
+   */
+  private static Transition evaluateTransitionsForMatch(
+      ProcessInstance processInstance, TaskResult taskResult, List<Transition> transitions) {
+    Transition defaultTransition = null;
+
+    for (Transition transition : transitions) {
+      Transition transitionToEvaluate = null;
+
+      if (taskResult.getStatus() == TaskResult.Status.CONTINUE) {
+        if (transition.getType() == TransitionType.DEFAULT) {
+          defaultTransition = defaultTransition == null ? transition : defaultTransition;
+          continue;
+        } else if (transition.getType() == TransitionType.CONDITIONAL) {
+          transitionToEvaluate = transition;
+        }
+      } else if (taskResult.getStatus() == TaskResult.Status.ERROR
+          && transition.getType() == TransitionType.ERROR) {
+        transitionToEvaluate = transition;
+      }
+
+      if (transitionToEvaluate != null
+          && evaluateTransitionPredicate(processInstance, transitionToEvaluate)) {
+        return transition;
+      }
+    }
+
+    return defaultTransition;
+  }
+
+  private static CompositeVariableView createTemporaryScopeWithTaskResults(
+      TaskResult taskResult, VariableContainer original) {
+    CompositeVariableView view = new CompositeVariableView();
+    ImmutableVariableContainer tempContainer = new ImmutableVariableContainer();
+    for (Variable variable : taskResult.getVariables()) {
+      tempContainer.restoreVariable(
+          variable.getTaskId(), variable.getType(), variable.getPayload());
+    }
+    view.addVariables(tempContainer);
+    view.addVariables(original);
+    return view;
+  }
+
+  private static boolean evaluateTransitionPredicate(
+      ProcessInstance processInstance, Transition toEvaluate) {
+    Optional<FilterEvaluator<ProcessInstance>> predicate = toEvaluate.getPredicate();
+    boolean matched = true;
+    if (predicate.isPresent()) {
+      matched = predicate.get().evaluate(processInstance);
+    }
+    return matched;
+  }
 
   protected void executeAfterSave(
       ProcessInstance processInstance, Map<String, Object> afterSaveCommand) {
-    throw new UnsupportedOperationException("Override this method to support afterSaveCommand");
+    if (afterSaveCommand != null) {
+      throw new IllegalStateException("this should be overridden where after save command exists!");
+    }
   }
 
-  protected ExecutionResult toFailure(ProcessInstance processInstance, Throwable throwable) {
-    ExecutionResult executionResult = new ExecutionResult(ExecutionResult.Status.TERMINAL);
-    executionResult.setCompletionSignal(CompletionSignal.failure("task failed with exception"));
+  protected TaskResult toError(ProcessInstance processInstance, Throwable throwable) {
+    TaskResult taskResult = new TaskResult(TaskResult.Status.ERROR);
     if (throwable instanceof TaskExecutionException taskExecutionException) {
-      executionResult.setVariables(taskExecutionException.getVariables());
+      taskResult.setVariables(taskExecutionException.getVariables());
     } else {
       Map<String, Object> payload = new HashMap<>(toErrorDetails(throwable));
       payload.put("rootCause", toErrorDetails(ExceptionUtils.getRootCause(throwable)));
       ProcessVariable processVariable = toVariable(processInstance, Variable.Type.ERROR, payload);
-      executionResult.setVariables(List.of(processVariable));
+      taskResult.setVariables(List.of(processVariable));
     }
-    return executionResult;
+    return taskResult;
   }
 
   protected Map<String, Object> toErrorDetails(Throwable throwable) {
@@ -104,8 +257,8 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     EnvironmentProvider environmentProvider = processServices.getService(EnvironmentProvider.class);
     if (environmentProvider.isShutdownInProgress()) {
      // check if shutdown is in progress, if yes throw an event to resume from this task
-      processInstance.setStatus(ExecutionResult.Status.WAIT);
-      if (saveProcessInstance(processInstance, ExecutionResult.Status.CONTINUE)) {
+      processInstance.setStatus(ProcessFlowStatus.WAIT);
+      if (saveProcessInstance(processInstance, TaskResult.Status.CONTINUE)) {
         ExecutionLifecycleManager executionLifecycleManager =
             processServices.getService(ExecutionLifecycleManager.class);
         executionLifecycleManager.resumeProcessFromTask(processInstance, this);
@@ -121,7 +274,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     processInstance.setCurrentTaskStartTime(System.currentTimeMillis());
     if (processInstance.incrementTaskCount() % 100 == 0) {
      // periodically flush accumulated variables and state to store
-      if (!saveProcessInstance(processInstance, ExecutionResult.Status.CONTINUE)) {
+      if (!saveProcessInstance(processInstance, TaskResult.Status.CONTINUE)) {
         flushNewVariablesIfAny(processInstance);
         return Optional.of(Next.EMPTY);
       }
@@ -135,20 +288,13 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   private void handleInstanceCompletion(ProcessInstance processInstance, String code) {}
 
   private Optional<Next> afterTaskExecution(
-      ProcessInstance processInstance, ExecutionResult executionResult) {
+      ProcessInstance processInstance, ProcessFlowResult processFlowResult) {
     processInstance.setCurrentTaskEndTime(System.currentTimeMillis());
-    if (executionResult.getStatus() != ExecutionResult.Status.CONTINUE) {
-      processInstance.setStatus(executionResult.getStatus());
-      if (!saveProcessInstance(processInstance, ExecutionResult.Status.CONTINUE)) {
-        flushNewVariablesIfAny(processInstance);
-        LOGGER.error("somethings wrong, execution instance not in expected state");
-        return Optional.of(Next.EMPTY);
-      } else {
-        Map<String, Object> afterSaveCommand = executionResult.getAfterSaveCommand();
-        if (afterSaveCommand != null) {
-          executeAfterSave(processInstance, afterSaveCommand);
-        }
-      }
+    processInstance.setStatus(processFlowResult.getFlowStatus());
+    // TODO fixme.
+    Map<String, Object> afterSaveCommand = processFlowResult.getTaskResult().getAfterSaveCommand();
+    if (afterSaveCommand != null) {
+      executeAfterSave(processInstance, afterSaveCommand);
     }
     ExecutionLifecycleAuditor lifecycleAuditor =
         getServices(processInstance).getService(ExecutionLifecycleAuditor.class);
@@ -156,7 +302,8 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return Optional.empty();
   }
 
-  private Next onTaskCompletion(ProcessInstance processInstance, ExecutionResult executionResult) {
+  private Next onTaskCompletion(
+      ProcessInstance processInstance, ProcessFlowResult processFlowResult) {
     processInstance.setCurrentTaskEndTime(System.currentTimeMillis());
     return Next.EMPTY;
   }
@@ -177,7 +324,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   }
 
   protected boolean saveProcessInstance(
-      ProcessInstance processInstance, ExecutionResult.Status expectedStatus) {
+      ProcessInstance processInstance, TaskResult.Status expectedStatus) {
     ProcessServices processServices = getServices(processInstance);
     ProcessInstanceStore instanceStore = processServices.getService(ProcessInstanceStore.class);
     if (instanceStore.save(processInstance, expectedStatus)) {

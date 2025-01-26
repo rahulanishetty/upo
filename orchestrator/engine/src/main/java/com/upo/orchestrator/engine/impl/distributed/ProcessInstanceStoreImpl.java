@@ -10,7 +10,7 @@ package com.upo.orchestrator.engine.impl.distributed;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.upo.orchestrator.engine.ExecutionResult;
+import com.upo.orchestrator.engine.TaskResult;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.services.ProcessInstanceStore;
 import com.upo.resource.redis.RedisTemplateFactory;
@@ -36,13 +36,13 @@ public class ProcessInstanceStoreImpl extends JsonRepositoryServiceImpl<ProcessI
   }
 
   @Override
-  public boolean save(ProcessInstance processInstance, ExecutionResult.Status expectedStatus) {
+  public boolean save(ProcessInstance processInstance, TaskResult.Status expectedStatus) {
     return updateIf(processInstance, ProcessInstance.STATUS, expectedStatus.name(), true)
         .isPresent();
   }
 
   @Override
-  public Optional<ProcessInstance> findById(String id, ExecutionResult.Status expectedStatus) {
+  public Optional<ProcessInstance> findById(String id, TaskResult.Status expectedStatus) {
     return findById(id)
         .filter(processInstance -> Objects.equals(processInstance.getStatus(), expectedStatus));
   }

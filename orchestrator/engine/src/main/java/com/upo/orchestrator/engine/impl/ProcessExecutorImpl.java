@@ -11,7 +11,6 @@ import java.util.*;
 import java.util.function.Function;
 
 import com.upo.orchestrator.engine.*;
-import com.upo.orchestrator.engine.models.CompletionSignal;
 import com.upo.orchestrator.engine.models.ProcessEnv;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.services.EnvironmentProvider;
@@ -63,20 +62,19 @@ public class ProcessExecutorImpl implements ProcessExecutor {
   }
 
   @Override
-  public void signal(
-      String processInstanceId, CompletionSignal signal, Map<String, Object> payload) {
+  public void signal(String processInstanceId, Map<String, Object> payload) {
     ProcessInstanceStore instanceStore = processServices.getService(ProcessInstanceStore.class);
     ProcessInstance processInstance = lookupProcessInstance(processInstanceId, instanceStore);
     executeTaskSequence(
         processInstance,
         processInstance.getCurrTaskId(),
-        (taskRuntime) -> taskRuntime.handleSignal(processInstance, signal, payload));
+        (taskRuntime) -> taskRuntime.handleSignal(processInstance, payload));
   }
 
   private ProcessInstance lookupProcessInstance(
       String processInstanceId, ProcessInstanceStore instanceStore) {
     Optional<ProcessInstance> processInstance =
-        instanceStore.findById(processInstanceId, ExecutionResult.Status.WAIT);
+        instanceStore.findById(processInstanceId, TaskResult.Status.WAIT);
     return processInstance
         .map(
             instance -> {
@@ -146,7 +144,7 @@ public class ProcessExecutorImpl implements ProcessExecutor {
     processInstance.setId(UlidUtils.createId());
     processInstance.setStartTime(System.currentTimeMillis());
     processInstance.setTaskCount(0L);
-    processInstance.setStatus(ExecutionResult.Status.CONTINUE);
+    processInstance.setStatus(ProcessFlowStatus.CONTINUE);
 
     ProcessDetails details = processRuntime.getDetails();
     processInstance.setProcessId(details.getId());

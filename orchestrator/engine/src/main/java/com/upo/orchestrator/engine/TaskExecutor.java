@@ -7,7 +7,6 @@
 */
 package com.upo.orchestrator.engine;
 
-import com.upo.orchestrator.engine.models.CompletionSignal;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
 import jakarta.validation.ValidationException;
@@ -26,17 +25,16 @@ public interface TaskExecutor {
    * @throws TaskExecutionException if task execution fails
    * @throws IllegalStateException if task is invoked in invalid state
    */
-  ExecutionResult execute(ProcessInstance context, Object input);
+  TaskResult execute(ProcessInstance context, Object input);
 
   /**
    * Handles task completion notification, including both success and failure scenarios. This method
    * is invoked after task execution completes, whether synchronously or asynchronously.
    *
    * @param context The process instance providing execution context
-   * @param signal The completion signal indicating success/failure
    * @param payload The execution result payload (may be null)
    */
-  void handleCompletion(ProcessInstance context, CompletionSignal signal, Object payload);
+  void handleCompletion(ProcessInstance context, Object payload);
 
   /**
    * Validates the task input parameters before execution. Default implementation performs basic

@@ -12,13 +12,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import com.upo.orchestrator.engine.models.CompletionSignal;
-
 /**
  * Represents the result of a task execution step. Supports multi-phase execution patterns like
  * two-phase commit and post-persistence callbacks.
  */
-public class ExecutionResult {
+public class TaskResult {
 
   /** Status of task execution. */
   public enum Status {
@@ -29,23 +27,11 @@ public class ExecutionResult {
     CONTINUE,
     /** Wait for signal */
     WAIT,
-
-    /**
-     * Task has reached terminal state (success or failure). Process execution should end with the
-     * outcome specified in completion signal.
-     */
-    TERMINAL;
+    /** Task execution failed with error. */
+    ERROR;
   }
 
   private Status status;
-
-  /**
-   * Completion details when task reaches TERMINAL status. Contains information about: -
-   * Success/failure outcome - Error details if failed - Completion metadata - Terminal state reason
-   *
-   * <p>Only relevant when status is TERMINAL.
-   */
-  private CompletionSignal completionSignal;
 
   /**
    * Serializable command to be executed after state persistence. This allows defining
@@ -60,9 +46,9 @@ public class ExecutionResult {
    */
   private Collection<Variable> variables;
 
-  public ExecutionResult() {}
+  public TaskResult() {}
 
-  public ExecutionResult(Status status) {
+  public TaskResult(Status status) {
     this.status = status;
   }
 
@@ -72,14 +58,6 @@ public class ExecutionResult {
 
   public void setStatus(Status status) {
     this.status = status;
-  }
-
-  public CompletionSignal getCompletionSignal() {
-    return completionSignal;
-  }
-
-  public void setCompletionSignal(CompletionSignal completionSignal) {
-    this.completionSignal = completionSignal;
   }
 
   public Map<String, Object> getAfterSaveCommand() {
@@ -106,16 +84,16 @@ public class ExecutionResult {
     this.variables.add(variable);
   }
 
-  public static ExecutionResult continueWithVariables(List<Variable> variables) {
-    ExecutionResult executionResult = new ExecutionResult();
-    executionResult.setStatus(Status.CONTINUE);
-    executionResult.setVariables(variables);
-    return executionResult;
+  public static TaskResult continueWithVariables(List<Variable> variables) {
+    TaskResult taskResult = new TaskResult();
+    taskResult.setStatus(Status.CONTINUE);
+    taskResult.setVariables(variables);
+    return taskResult;
   }
 
-  public static ExecutionResult continueWithNoVariables() {
-    ExecutionResult executionResult = new ExecutionResult();
-    executionResult.setStatus(Status.CONTINUE);
-    return executionResult;
+  public static TaskResult continueWithNoVariables() {
+    TaskResult taskResult = new TaskResult();
+    taskResult.setStatus(Status.CONTINUE);
+    return taskResult;
   }
 }
