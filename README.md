@@ -38,10 +38,14 @@ The **Universal Process Orchestrator (UPO)** is a versatile and resilient framew
 
 - **Environment Requirements**:
     - Java 21+ or a supported runtime.
-    - Docker (optional for containerized deployments).
-- **Dependencies**:
-    - A relational or NoSQL database (e.g., PostgreSQL, MongoDB).
-    - Message queue system (e.g., Kafka) for async task coordination.
+
+[//]: # (    - Docker &#40;optional for containerized deployments&#41;.)
+
+[//]: # (- **Dependencies**:)
+
+[//]: # (    - A relational or NoSQL database &#40;e.g., PostgreSQL, MongoDB&#41;.)
+
+[//]: # (    - Message queue system &#40;e.g., Kafka&#41; for async task coordination.)
 
 ### 2. Installation
 
@@ -105,7 +109,8 @@ The **Universal Process Orchestrator (UPO)** is dual-licensed under:
 ### Obtaining a Commercial License
 To obtain a commercial license, please contact us:
 - **Email**: licensing@upo-platform.com
-- **Website**: [www.upo-platform.com/licensing](http://www.upo-platform.com/licensing)
+
+[//]: # (- **Website**: [www.upo-platform.com/licensing]&#40;http://www.upo-platform.com/licensing&#41;)
 
 Unauthorized use outside of the AGPL-3.0 terms or without a commercial license is strictly prohibited.
 
@@ -113,4 +118,5 @@ Unauthorized use outside of the AGPL-3.0 terms or without a commercial license i
 ## Contact
 For questions or support, contact:
 - **Email**: support@upo-platform.com
-- **Website**: [www.upo-platform.com](http://www.upo-platform.com)
+
+[//]: # (- **Website**: [www.upo-platform.com]&#40;http://www.upo-platform.com&#41;)
