@@ -258,7 +258,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     if (environmentProvider.isShutdownInProgress()) {
      // check if shutdown is in progress, if yes throw an event to resume from this task
       processInstance.setStatus(ProcessFlowStatus.WAIT);
-      if (saveProcessInstance(processInstance, TaskResult.Status.CONTINUE)) {
+      if (saveProcessInstance(processInstance, ProcessFlowStatus.CONTINUE)) {
         ExecutionLifecycleManager executionLifecycleManager =
             processServices.getService(ExecutionLifecycleManager.class);
         executionLifecycleManager.resumeProcessFromTask(processInstance, this);
@@ -274,7 +274,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     processInstance.setCurrentTaskStartTime(System.currentTimeMillis());
     if (processInstance.incrementTaskCount() % 100 == 0) {
      // periodically flush accumulated variables and state to store
-      if (!saveProcessInstance(processInstance, TaskResult.Status.CONTINUE)) {
+      if (!saveProcessInstance(processInstance, ProcessFlowStatus.CONTINUE)) {
         flushNewVariablesIfAny(processInstance);
         return Optional.of(Next.EMPTY);
       }
@@ -290,11 +290,19 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   private Optional<Next> afterTaskExecution(
       ProcessInstance processInstance, ProcessFlowResult processFlowResult) {
     processInstance.setCurrentTaskEndTime(System.currentTimeMillis());
-    processInstance.setStatus(processFlowResult.getFlowStatus());
-    // TODO fixme.
-    Map<String, Object> afterSaveCommand = processFlowResult.getTaskResult().getAfterSaveCommand();
-    if (afterSaveCommand != null) {
-      executeAfterSave(processInstance, afterSaveCommand);
+    applyResultOnProcessInstance(processInstance, processFlowResult);
+    if (processFlowResult.getFlowStatus() != ProcessFlowStatus.CONTINUE) {
+      if (!saveProcessInstance(processInstance, ProcessFlowStatus.CONTINUE)) {
+        flushNewVariablesIfAny(processInstance);
+        LOGGER.error("somethings wrong, execution instance not in expected state");
+        return Optional.of(Next.EMPTY);
+      } else {
+        Map<String, Object> afterSaveCommand =
+            processFlowResult.getTaskResult().getAfterSaveCommand();
+        if (afterSaveCommand != null) {
+          executeAfterSave(processInstance, afterSaveCommand);
+        }
+      }
     }
     ExecutionLifecycleAuditor lifecycleAuditor =
         getServices(processInstance).getService(ExecutionLifecycleAuditor.class);
@@ -302,10 +310,26 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return Optional.empty();
   }
 
+  private static void applyResultOnProcessInstance(
+      ProcessInstance processInstance, ProcessFlowResult processFlowResult) {
+    TaskResult taskResult = processFlowResult.getTaskResult();
+    processInstance.setStatus(processFlowResult.getFlowStatus());
+    if (CollectionUtils.isNotEmpty(taskResult.getVariables())) {
+      VariableContainer variableContainer = processInstance.getVariableContainer();
+      for (Variable variable : taskResult.getVariables()) {
+        variableContainer.addNewVariable(
+            variable.getTaskId(), variable.getType(), variable.getPayload());
+      }
+    }
+  }
+
   private Next onTaskCompletion(
       ProcessInstance processInstance, ProcessFlowResult processFlowResult) {
     processInstance.setCurrentTaskEndTime(System.currentTimeMillis());
-    return Next.EMPTY;
+    ExecutionLifecycleAuditor lifecycleAuditor =
+        getServices(processInstance).getService(ExecutionLifecycleAuditor.class);
+    lifecycleAuditor.onCompletion(this, processInstance);
+    return processFlowResult::getNextTransitions;
   }
 
   protected void flushNewVariablesIfAny(ProcessInstance processInstance) {
@@ -324,7 +348,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   }
 
   protected boolean saveProcessInstance(
-      ProcessInstance processInstance, TaskResult.Status expectedStatus) {
+      ProcessInstance processInstance, ProcessFlowStatus expectedStatus) {
     ProcessServices processServices = getServices(processInstance);
     ProcessInstanceStore instanceStore = processServices.getService(ProcessInstanceStore.class);
     if (instanceStore.save(processInstance, expectedStatus)) {

@@ -74,7 +74,7 @@ public class ProcessExecutorImpl implements ProcessExecutor {
   private ProcessInstance lookupProcessInstance(
       String processInstanceId, ProcessInstanceStore instanceStore) {
     Optional<ProcessInstance> processInstance =
-        instanceStore.findById(processInstanceId, TaskResult.Status.WAIT);
+        instanceStore.findById(processInstanceId, ProcessFlowStatus.WAIT);
     return processInstance
         .map(
             instance -> {

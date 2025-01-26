@@ -9,7 +9,7 @@ package com.upo.orchestrator.engine.services;
 
 import java.util.Optional;
 
-import com.upo.orchestrator.engine.TaskResult;
+import com.upo.orchestrator.engine.ProcessFlowStatus;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
 /**
@@ -33,7 +33,7 @@ public interface ProcessInstanceStore {
    * @param processInstance the process instance to save
    * @return true if save was successful, false otherwise
    */
-  boolean save(ProcessInstance processInstance, TaskResult.Status expectedStatus);
+  boolean save(ProcessInstance processInstance, ProcessFlowStatus expectedStatus);
 
   /**
    * Retrieves a process instance by its identifier.
@@ -50,5 +50,5 @@ public interface ProcessInstanceStore {
    * @param expectedStatus expectedStatus of the process instance
    * @return the process instance if found, null otherwise
    */
-  Optional<ProcessInstance> findById(String id, TaskResult.Status expectedStatus);
+  Optional<ProcessInstance> findById(String id, ProcessFlowStatus expectedStatus);
 }
