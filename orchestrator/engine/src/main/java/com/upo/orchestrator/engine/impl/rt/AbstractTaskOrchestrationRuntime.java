@@ -41,13 +41,12 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   @Override
   public Next execute(ProcessInstance processInstance) {
     Optional<Next> next = beforeTaskExecution(processInstance);
-    if (next.isPresent()) {
-     // short-circuited
-      return next.get();
-    }
-    ProcessFlowResult processFlowResult = executeTaskAndResolveFlow(processInstance);
-    return afterTaskExecution(processInstance, processFlowResult)
-        .orElseGet(() -> onTaskCompletion(processInstance, processFlowResult));
+    return next.orElseGet(
+        () -> {
+          ProcessFlowResult processFlowResult = executeTaskAndResolveFlow(processInstance);
+          return afterTaskExecution(processInstance, processFlowResult)
+              .orElseGet(() -> onTaskCompletion(processInstance, processFlowResult));
+        });
   }
 
   @Override
@@ -222,13 +221,6 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return matched;
   }
 
-  protected void executeAfterSave(
-      ProcessInstance processInstance, Map<String, Object> afterSaveCommand) {
-    if (afterSaveCommand != null) {
-      throw new IllegalStateException("this should be overridden where after save command exists!");
-    }
-  }
-
   protected TaskResult toError(ProcessInstance processInstance, Throwable throwable) {
     TaskResult taskResult = new TaskResult(TaskResult.Status.ERROR);
     if (throwable instanceof TaskExecutionException taskExecutionException) {
@@ -253,14 +245,14 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   }
 
   private Optional<Next> beforeTaskExecution(ProcessInstance processInstance) {
-    ProcessServices processServices = getServices(processInstance);
-    EnvironmentProvider environmentProvider = processServices.getService(EnvironmentProvider.class);
+    EnvironmentProvider environmentProvider =
+        getService(processInstance, EnvironmentProvider.class);
     if (environmentProvider.isShutdownInProgress()) {
      // check if shutdown is in progress, if yes throw an event to resume from this task
       processInstance.setStatus(ProcessFlowStatus.WAIT);
       if (saveProcessInstance(processInstance, ProcessFlowStatus.CONTINUE)) {
         ExecutionLifecycleManager executionLifecycleManager =
-            processServices.getService(ExecutionLifecycleManager.class);
+            getService(processInstance, ExecutionLifecycleManager.class);
         executionLifecycleManager.resumeProcessFromTask(processInstance, this);
       }
       return Optional.of(Next.EMPTY);
@@ -280,7 +272,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       }
     }
     ExecutionLifecycleAuditor lifecycleAuditor =
-        processServices.getService(ExecutionLifecycleAuditor.class);
+        getService(processInstance, ExecutionLifecycleAuditor.class);
     lifecycleAuditor.beforeExecution(this, processInstance);
     return Optional.empty();
   }
@@ -289,25 +281,34 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
 
   private Optional<Next> afterTaskExecution(
       ProcessInstance processInstance, ProcessFlowResult processFlowResult) {
-    processInstance.setCurrentTaskEndTime(System.currentTimeMillis());
+    processInstance.setCurrentTaskInvocationTime(System.currentTimeMillis());
     applyResultOnProcessInstance(processInstance, processFlowResult);
     if (processFlowResult.getFlowStatus() != ProcessFlowStatus.CONTINUE) {
       if (!saveProcessInstance(processInstance, ProcessFlowStatus.CONTINUE)) {
         flushNewVariablesIfAny(processInstance);
         LOGGER.error("somethings wrong, execution instance not in expected state");
         return Optional.of(Next.EMPTY);
-      } else {
-        Map<String, Object> afterSaveCommand =
-            processFlowResult.getTaskResult().getAfterSaveCommand();
-        if (afterSaveCommand != null) {
-          executeAfterSave(processInstance, afterSaveCommand);
-        }
       }
     }
+    Optional<Next> next = Optional.empty();
+    TaskResult taskResult = processFlowResult.getTaskResult();
+    if (taskResult instanceof TaskResult.Wait wait) {
+      ProcessCallbackFactory processCallbackFactory =
+          getService(processInstance, ProcessCallbackFactory.class);
+      if (wait.getCallbackType() != null) {
+        ProcessCallback callback =
+            processCallbackFactory.createCallback(
+                processInstance, wait.getCallbackType(), wait.getCallbackData());
+        if (callback != null) {
+          callback.execute();
+        }
+      }
+      next = Optional.of(Next.EMPTY);
+    }
     ExecutionLifecycleAuditor lifecycleAuditor =
-        getServices(processInstance).getService(ExecutionLifecycleAuditor.class);
+        getService(processInstance, ExecutionLifecycleAuditor.class);
     lifecycleAuditor.afterExecution(this, processInstance);
-    return Optional.empty();
+    return next;
   }
 
   private static void applyResultOnProcessInstance(
@@ -327,7 +328,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       ProcessInstance processInstance, ProcessFlowResult processFlowResult) {
     processInstance.setCurrentTaskEndTime(System.currentTimeMillis());
     ExecutionLifecycleAuditor lifecycleAuditor =
-        getServices(processInstance).getService(ExecutionLifecycleAuditor.class);
+        getService(processInstance, ExecutionLifecycleAuditor.class);
     lifecycleAuditor.onCompletion(this, processInstance);
     return processFlowResult::getNextTransitions;
   }
@@ -338,8 +339,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     if (CollectionUtils.isEmpty(newVariables)) {
       return;
     }
-    ProcessServices processServices = getServices(processInstance);
-    VariableStore variableStore = processServices.getService(VariableStore.class);
+    VariableStore variableStore = getService(processInstance, VariableStore.class);
     for (ProcessVariable newVariable : newVariables) {
       newVariable.initId(processInstance);
     }
@@ -349,14 +349,17 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
 
   protected boolean saveProcessInstance(
       ProcessInstance processInstance, ProcessFlowStatus expectedStatus) {
-    ProcessServices processServices = getServices(processInstance);
-    ProcessInstanceStore instanceStore = processServices.getService(ProcessInstanceStore.class);
+    ProcessInstanceStore instanceStore = getService(processInstance, ProcessInstanceStore.class);
     if (instanceStore.save(processInstance, expectedStatus)) {
       processInstance.setTaskCountSinceLastFlush(0L);
       flushNewVariablesIfAny(processInstance);
       return true;
     }
     return false;
+  }
+
+  protected <T> T getService(ProcessInstance processInstance, Class<T> serviceClz) {
+    return getServices(processInstance).getService(serviceClz);
   }
 
   private Variable skippedInput() {

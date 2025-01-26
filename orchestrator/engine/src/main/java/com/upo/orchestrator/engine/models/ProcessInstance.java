@@ -82,6 +82,9 @@ public class ProcessInstance {
   /** Timestamp when current task completed execution. Reset when moving to next task. */
   private Long currentTaskEndTime;
 
+  /** Timestamp when current task invoked execution. Reset each time a new task begins. */
+  private Long currentTaskInvocationTime;
+
   /** ID of the previously executed task. */
   private String prevTaskId;
 
@@ -226,6 +229,14 @@ public class ProcessInstance {
 
   public void setCurrentTaskEndTime(Long currentTaskEndTime) {
     this.currentTaskEndTime = currentTaskEndTime;
+  }
+
+  public Long getCurrentTaskInvocationTime() {
+    return currentTaskInvocationTime;
+  }
+
+  public void setCurrentTaskInvocationTime(Long currentTaskInvocationTime) {
+    this.currentTaskInvocationTime = currentTaskInvocationTime;
   }
 
   public String getPrevTaskId() {

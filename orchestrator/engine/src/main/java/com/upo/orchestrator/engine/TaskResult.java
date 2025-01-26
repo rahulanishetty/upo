@@ -16,7 +16,7 @@ import java.util.Map;
  * Represents the result of a task execution step. Supports multi-phase execution patterns like
  * two-phase commit and post-persistence callbacks.
  */
-public class TaskResult {
+public sealed class TaskResult {
 
   /** Status of task execution. */
   public enum Status {
@@ -32,12 +32,6 @@ public class TaskResult {
   }
 
   private Status status;
-
-  /**
-   * Serializable command to be executed after state persistence. This allows defining
-   * post-persistence actions without coupling to specific implementation.
-   */
-  private Map<String, Object> afterSaveCommand;
 
   /**
    * Variables produced during this execution step. Captures: - Task inputs after variable
@@ -58,14 +52,6 @@ public class TaskResult {
 
   public void setStatus(Status status) {
     this.status = status;
-  }
-
-  public Map<String, Object> getAfterSaveCommand() {
-    return afterSaveCommand;
-  }
-
-  public void setAfterSaveCommand(Map<String, Object> afterSaveCommand) {
-    this.afterSaveCommand = afterSaveCommand;
   }
 
   public Collection<Variable> getVariables() {
@@ -91,9 +77,76 @@ public class TaskResult {
     return taskResult;
   }
 
-  public static TaskResult continueWithNoVariables() {
-    TaskResult taskResult = new TaskResult();
-    taskResult.setStatus(Status.CONTINUE);
-    return taskResult;
+  public static final class Continue extends TaskResult {
+    private Continue(Collection<Variable> variables) {
+      super(Status.CONTINUE);
+      setVariables(variables);
+    }
+
+    public static Continue with(Collection<Variable> variables) {
+      return new Continue(variables);
+    }
+  }
+
+  public static final class Error extends TaskResult {
+    private Error(Collection<Variable> variables) {
+      super(Status.ERROR);
+      setVariables(variables);
+    }
+
+    public static Error with(Collection<Variable> variables) {
+      return new Error(variables);
+    }
+  }
+
+  /**
+   * Task result indicating process should enter WAIT state and execute post-commit operations. Used
+   * in distributed scenarios where operations must be performed only after successful state
+   * persistence.
+   *
+   * <p>Example usage: - Spawning child processes - Sending messages to external systems -
+   * Initiating remote task execution
+   */
+  public static final class Wait extends TaskResult {
+    /**
+     * Identifier for the ProcessCallback implementation. Must be registered with
+     * ProcessCallbackFactory.
+     */
+    private String callbackType;
+
+    /** Operation parameters for callback execution. */
+    private Map<String, Object> callbackData;
+
+    public Wait() {
+      super(Status.WAIT);
+    }
+
+    public Wait(String callbackType, Map<String, Object> callbackData) {
+      super(Status.WAIT);
+      this.callbackType = callbackType;
+      this.callbackData = callbackData;
+    }
+
+    public Wait(
+        Collection<Variable> variables, String callbackType, Map<String, Object> callbackData) {
+      this(callbackType, callbackData);
+      setVariables(variables);
+    }
+
+    public String getCallbackType() {
+      return callbackType;
+    }
+
+    public void setCallbackType(String callbackType) {
+      this.callbackType = callbackType;
+    }
+
+    public Map<String, Object> getCallbackData() {
+      return callbackData;
+    }
+
+    public void setCallbackData(Map<String, Object> callbackData) {
+      this.callbackData = callbackData;
+    }
   }
 }
