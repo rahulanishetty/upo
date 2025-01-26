@@ -20,6 +20,7 @@ import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.models.ProcessVariable;
 import com.upo.orchestrator.engine.services.*;
 import com.upo.orchestrator.engine.utils.ExceptionUtils;
+import com.upo.orchestrator.engine.utils.ProcessUtils;
 import com.upo.orchestrator.engine.utils.VariableUtils;
 import com.upo.utilities.ds.CollectionUtils;
 import com.upo.utilities.filter.impl.FilterEvaluator;
@@ -50,8 +51,16 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   }
 
   @Override
-  public Next handleSignal(ProcessInstance processInstance, Map<String, Object> payload) {
-    return onTaskCompletion(processInstance, null);
+  public Next handleSignal(
+      ProcessInstance processInstance, TaskResult.Status status, Map<String, Object> payload) {
+    ProcessFlowResult processFlowResult =
+        resolveProcessFlow(processInstance, ProcessUtils.toTaskResult(status, taskId, payload));
+    applyResultOnProcessInstance(processInstance, processFlowResult);
+    if (!saveProcessInstance(processInstance, ProcessFlowStatus.WAIT)) {
+      LOGGER.error("process is expected to be in WAIT state");
+      return Next.EMPTY;
+    }
+    return onTaskCompletion(processInstance, processFlowResult);
   }
 
   private TaskResult _execute(ProcessInstance processInstance) {
@@ -61,7 +70,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       if (skipCondition == null || !skipCondition.evaluate(processInstance)) {
         taskResult = doExecute(processInstance);
       } else {
-        taskResult = TaskResult.continueWithVariables(List.of(skippedInput()));
+        taskResult = TaskResult.Continue.with(List.of(skippedInput()));
       }
     } catch (Throwable th) {
       taskResult = toError(processInstance, th);
@@ -222,16 +231,14 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   }
 
   protected TaskResult toError(ProcessInstance processInstance, Throwable throwable) {
-    TaskResult taskResult = new TaskResult(TaskResult.Status.ERROR);
     if (throwable instanceof TaskExecutionException taskExecutionException) {
-      taskResult.setVariables(taskExecutionException.getVariables());
+      return TaskResult.Error.with(taskExecutionException.getVariables());
     } else {
       Map<String, Object> payload = new HashMap<>(toErrorDetails(throwable));
       payload.put("rootCause", toErrorDetails(ExceptionUtils.getRootCause(throwable)));
       ProcessVariable processVariable = toVariable(processInstance, Variable.Type.ERROR, payload);
-      taskResult.setVariables(List.of(processVariable));
+      return TaskResult.Error.with(List.of(processVariable));
     }
-    return taskResult;
   }
 
   protected Map<String, Object> toErrorDetails(Throwable throwable) {
@@ -258,7 +265,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       return Optional.of(Next.EMPTY);
     }
     if (Objects.equals(taskId, processInstance.getTerminateAtTaskId())) {
-      handleInstanceCompletion(processInstance, "TERMINATED_AT_TASK_ID");
+      handleInstanceCompletion(processInstance, ProcessFlowStatus.COMPLETED);
       return Optional.of(Next.EMPTY);
     }
     processInstance.setPrevTaskId(processInstance.getCurrTaskId());
@@ -277,7 +284,8 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return Optional.empty();
   }
 
-  private void handleInstanceCompletion(ProcessInstance processInstance, String code) {}
+  private void handleInstanceCompletion(
+      ProcessInstance processInstance, ProcessFlowStatus flowStatus) {}
 
   private Optional<Next> afterTaskExecution(
       ProcessInstance processInstance, ProcessFlowResult processFlowResult) {
@@ -330,7 +338,14 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     ExecutionLifecycleAuditor lifecycleAuditor =
         getService(processInstance, ExecutionLifecycleAuditor.class);
     lifecycleAuditor.onCompletion(this, processInstance);
-    return processFlowResult::getNextTransitions;
+    ProcessFlowStatus flowStatus = processFlowResult.getFlowStatus();
+    return switch (flowStatus) {
+      case COMPLETED, FAILED, SUSPENDED -> {
+        handleInstanceCompletion(processInstance, flowStatus);
+        yield Next.EMPTY;
+      }
+      default -> processFlowResult::getNextTransitions;
+    };
   }
 
   protected void flushNewVariablesIfAny(ProcessInstance processInstance) {

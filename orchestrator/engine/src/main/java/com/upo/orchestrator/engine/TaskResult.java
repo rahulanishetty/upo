@@ -9,14 +9,13 @@ package com.upo.orchestrator.engine;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
  * Represents the result of a task execution step. Supports multi-phase execution patterns like
  * two-phase commit and post-persistence callbacks.
  */
-public sealed class TaskResult {
+public abstract sealed class TaskResult {
 
   /** Status of task execution. */
   public enum Status {
@@ -68,13 +67,6 @@ public sealed class TaskResult {
       this.variables = new ArrayList<>();
     }
     this.variables.add(variable);
-  }
-
-  public static TaskResult continueWithVariables(List<Variable> variables) {
-    TaskResult taskResult = new TaskResult();
-    taskResult.setStatus(Status.CONTINUE);
-    taskResult.setVariables(variables);
-    return taskResult;
   }
 
   public static final class Continue extends TaskResult {
@@ -130,6 +122,11 @@ public sealed class TaskResult {
     public Wait(
         Collection<Variable> variables, String callbackType, Map<String, Object> callbackData) {
       this(callbackType, callbackData);
+      setVariables(variables);
+    }
+
+    public Wait(Collection<Variable> variables) {
+      this();
       setVariables(variables);
     }
 
