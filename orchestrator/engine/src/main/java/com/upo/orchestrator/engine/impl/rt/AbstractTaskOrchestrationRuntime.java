@@ -285,7 +285,29 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   }
 
   private void handleInstanceCompletion(
-      ProcessInstance processInstance, ProcessFlowStatus flowStatus) {}
+      ProcessInstance processInstance, ProcessFlowStatus flowStatus) {
+    ExecutionLifecycleManager lifecycleManager =
+        getService(processInstance, ExecutionLifecycleManager.class);
+    if (ProcessUtils.isRootInstance(processInstance)) {
+      lifecycleManager.cleanup(processInstance);
+    } else {
+      ProcessInstanceStore processInstanceStore =
+          getService(processInstance, ProcessInstanceStore.class);
+      Optional<ProcessInstance> parentInstance =
+          processInstanceStore.findById(processInstance.getParentId(), ProcessFlowStatus.WAIT);
+      if (parentInstance.isEmpty()) {
+        return;
+      }
+      signalParentInstance(processInstance, parentInstance.get(), flowStatus);
+    }
+  }
+
+  private void signalParentInstance(
+      ProcessInstance processInstance,
+      ProcessInstance parentInstance,
+      ProcessFlowStatus flowStatus) {
+   throw new UnsupportedOperationException("TODO Implement this!");
+  }
 
   private Optional<Next> afterTaskExecution(
       ProcessInstance processInstance, ProcessFlowResult processFlowResult) {
@@ -294,7 +316,8 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     if (processFlowResult.getFlowStatus() != ProcessFlowStatus.CONTINUE) {
       if (!saveProcessInstance(processInstance, ProcessFlowStatus.CONTINUE)) {
         flushNewVariablesIfAny(processInstance);
-        LOGGER.error("somethings wrong, execution instance not in expected state");
+        LOGGER.error(
+            "somethings wrong, execution instance {} not in expected state", processInstance);
         return Optional.of(Next.EMPTY);
       }
     }

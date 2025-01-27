@@ -13,4 +13,6 @@ import com.upo.orchestrator.engine.models.ProcessInstance;
 public interface ExecutionLifecycleManager {
 
   void resumeProcessFromTask(ProcessInstance processInstance, TaskRuntime taskRuntime);
+
+  void cleanup(ProcessInstance processInstance);
 }

@@ -283,4 +283,28 @@ public class ProcessInstance {
     taskCount++;
     return taskCountSinceLastFlush++;
   }
+
+  @Override
+  public String toString() {
+    return "ProcessInstance{"
+        + "id='"
+        + id
+        + '\''
+        + ", rootId='"
+        + rootId
+        + '\''
+        + ", parentId='"
+        + parentId
+        + '\''
+        + ", processId='"
+        + processId
+        + '\''
+        + ", processSnapshotId='"
+        + processSnapshotId
+        + '\''
+        + ", processVersion='"
+        + processVersion
+        + '\''
+        + '}';
+  }
 }

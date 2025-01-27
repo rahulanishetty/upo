@@ -13,6 +13,7 @@ import java.util.Map;
 
 import com.upo.orchestrator.engine.TaskResult;
 import com.upo.orchestrator.engine.Variable;
+import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.models.ProcessVariable;
 
 public class ProcessUtils {
@@ -32,5 +33,9 @@ public class ProcessUtils {
       case CONTINUE -> TaskResult.Continue.with(variables);
       case ERROR -> TaskResult.Error.with(variables);
     };
+  }
+
+  public static boolean isRootInstance(ProcessInstance processInstance) {
+    return processInstance.getRootId() == null;
   }
 }
