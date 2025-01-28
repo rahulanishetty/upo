@@ -285,20 +285,54 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   }
 
   /**
-   * Handles process instance completion based on instance type (root or child). For root instances,
-   * triggers cleanup. For child instances, signals parent process.
+   * Handles process instance completion and cleanup. For non-root instances: 1. Suspends remaining
+   * child instances if any 2. Signals parent process with execution result
    *
    * @param processInstance Current process instance
-   * @param flowStatus Final status of process execution
+   * @param flowStatus Terminal status (COMPLETED, FAILED, SUSPENDED, CANCELLED)
+   * @throws IllegalStateException if called with non-terminal status
    */
   private void handleInstanceCompletion(
       ProcessInstance processInstance, ProcessFlowStatus flowStatus) {
+    validateTerminalStatus(flowStatus);
     ExecutionLifecycleManager lifecycleManager =
         getService(processInstance, ExecutionLifecycleManager.class);
     if (ProcessUtils.isRootInstance(processInstance)) {
       lifecycleManager.cleanup(processInstance);
       return;
     }
+   // Suspend remaining child instances if parent is cancelled/suspended
+    if (shouldSuspendChildren(flowStatus)) {
+      suspendRemainingChildren(processInstance, lifecycleManager);
+    }
+    signalParentProcess(processInstance, flowStatus, lifecycleManager);
+  }
+
+  private void validateTerminalStatus(ProcessFlowStatus flowStatus) {
+    if (flowStatus == ProcessFlowStatus.CONTINUE || flowStatus == ProcessFlowStatus.WAIT) {
+      throw new IllegalStateException(
+          "Process completion can only be called with terminal status, received: " + flowStatus);
+    }
+  }
+
+  private boolean shouldSuspendChildren(ProcessFlowStatus flowStatus) {
+    return flowStatus == ProcessFlowStatus.SUSPENDED || flowStatus == ProcessFlowStatus.FAILED;
+  }
+
+  private void suspendRemainingChildren(
+      ProcessInstance processInstance, ExecutionLifecycleManager lifecycleManager) {
+    List<String> remainingChildren = processInstance.getRemainingChildInstances();
+    if (CollectionUtils.isNotEmpty(remainingChildren)) {
+      for (String childId : remainingChildren) {
+        lifecycleManager.signalProcess(processInstance, childId, ProcessFlowStatus.SUSPENDED);
+      }
+    }
+  }
+
+  private void signalParentProcess(
+      ProcessInstance processInstance,
+      ProcessFlowStatus flowStatus,
+      ExecutionLifecycleManager lifecycleManager) {
     ProcessInstanceStore processInstanceStore =
         getService(processInstance, ProcessInstanceStore.class);
     Optional<ProcessInstance> parentInstance =

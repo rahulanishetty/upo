@@ -19,6 +19,9 @@ public interface ExecutionLifecycleManager {
       ProcessFlowStatus flowStatus,
       Object payload);
 
+  void signalProcess(
+      ProcessInstance processInstance, String targetInstanceId, ProcessFlowStatus flowStatus);
+
   void resumeProcessFromTask(ProcessInstance processInstance, TaskRuntime taskRuntime);
 
   void cleanup(ProcessInstance processInstance);
