@@ -284,27 +284,42 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return Optional.empty();
   }
 
+  /**
+   * Handles process instance completion based on instance type (root or child). For root instances,
+   * triggers cleanup. For child instances, signals parent process.
+   *
+   * @param processInstance Current process instance
+   * @param flowStatus Final status of process execution
+   */
   private void handleInstanceCompletion(
       ProcessInstance processInstance, ProcessFlowStatus flowStatus) {
     ExecutionLifecycleManager lifecycleManager =
         getService(processInstance, ExecutionLifecycleManager.class);
     if (ProcessUtils.isRootInstance(processInstance)) {
       lifecycleManager.cleanup(processInstance);
-    } else {
-      ProcessInstanceStore processInstanceStore =
-          getService(processInstance, ProcessInstanceStore.class);
-      Optional<ProcessInstance> parentInstance =
-          processInstanceStore.findById(processInstance.getParentId(), ProcessFlowStatus.WAIT);
-      if (parentInstance.isEmpty()) {
-        return;
-      }
-      Object returnValue = getReturnValueForExecution(processInstance, flowStatus);
-      lifecycleManager.signalProcess(
-          processInstance, parentInstance.get(), flowStatus, returnValue);
+      return;
     }
+    ProcessInstanceStore processInstanceStore =
+        getService(processInstance, ProcessInstanceStore.class);
+    Optional<ProcessInstance> parentInstance =
+        processInstanceStore.findById(processInstance.getParentId(), ProcessFlowStatus.WAIT);
+    if (parentInstance.isEmpty()) {
+      return;
+    }
+    Object executionResult = extractExecutionResult(processInstance, flowStatus);
+    lifecycleManager.signalProcess(
+        processInstance, parentInstance.get(), flowStatus, executionResult);
   }
 
-  private Object getReturnValueForExecution(
+  /**
+   * Extracts final result from process execution based on flow status. Returns error variable for
+   * FAILED status, output variable otherwise.
+   *
+   * @param processInstance Source process instance
+   * @param flowStatus Final execution status
+   * @return Variable value based on status type
+   */
+  private Object extractExecutionResult(
       ProcessInstance processInstance, ProcessFlowStatus flowStatus) {
     Variable.Type type =
         flowStatus == ProcessFlowStatus.FAILED ? Variable.Type.ERROR : Variable.Type.OUTPUT;
