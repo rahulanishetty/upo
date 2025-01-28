@@ -7,10 +7,17 @@
 */
 package com.upo.orchestrator.engine.services;
 
+import com.upo.orchestrator.engine.ProcessFlowStatus;
 import com.upo.orchestrator.engine.TaskRuntime;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
 public interface ExecutionLifecycleManager {
+
+  void signalProcess(
+      ProcessInstance processInstance,
+      ProcessInstance targetInstance,
+      ProcessFlowStatus flowStatus,
+      Object payload);
 
   void resumeProcessFromTask(ProcessInstance processInstance, TaskRuntime taskRuntime);
 

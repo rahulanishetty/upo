@@ -298,15 +298,19 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       if (parentInstance.isEmpty()) {
         return;
       }
-      signalParentInstance(processInstance, parentInstance.get(), flowStatus);
+      Object returnValue = getReturnValueForExecution(processInstance, flowStatus);
+      lifecycleManager.signalProcess(
+          processInstance, parentInstance.get(), flowStatus, returnValue);
     }
   }
 
-  private void signalParentInstance(
-      ProcessInstance processInstance,
-      ProcessInstance parentInstance,
-      ProcessFlowStatus flowStatus) {
-    throw new UnsupportedOperationException("TODO Implement this!");
+  private Object getReturnValueForExecution(
+      ProcessInstance processInstance, ProcessFlowStatus flowStatus) {
+    Variable.Type type =
+        flowStatus == ProcessFlowStatus.FAILED ? Variable.Type.ERROR : Variable.Type.OUTPUT;
+    String currTaskId = processInstance.getCurrTaskId();
+    VariableContainer variableContainer = processInstance.getVariableContainer();
+    return variableContainer.getVariable(currTaskId, type);
   }
 
   private Optional<Next> afterTaskExecution(
