@@ -42,6 +42,9 @@ public class ProcessInstance {
   /** execution strategy used for this instance */
   private String executionStrategy;
 
+  /** represents if this process instance is a concurrent instance */
+  private boolean concurrent;
+
   /** children instances spawned by this instance */
   private List<String> childInstanceIds;
 
@@ -149,6 +152,14 @@ public class ProcessInstance {
 
   public void setExecutionStrategy(String executionStrategy) {
     this.executionStrategy = executionStrategy;
+  }
+
+  public boolean isConcurrent() {
+    return concurrent;
+  }
+
+  public void setConcurrent(boolean concurrent) {
+    this.concurrent = concurrent;
   }
 
   public List<String> getChildInstanceIds() {

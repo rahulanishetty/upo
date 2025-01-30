@@ -295,17 +295,17 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   private void handleInstanceCompletion(
       ProcessInstance processInstance, ProcessFlowStatus flowStatus) {
     validateTerminalStatus(flowStatus);
-    ExecutionLifecycleManager lifecycleManager =
-        getService(processInstance, ExecutionLifecycleManager.class);
     if (ProcessUtils.isRootInstance(processInstance)) {
+      ExecutionLifecycleManager lifecycleManager =
+          getService(processInstance, ExecutionLifecycleManager.class);
       lifecycleManager.cleanup(processInstance);
       return;
     }
    // Suspend remaining child instances if parent is cancelled/suspended
     if (shouldSuspendChildren(flowStatus)) {
-      suspendRemainingChildren(processInstance, lifecycleManager);
+      suspendRemainingChildren(processInstance);
     }
-    signalParentProcess(processInstance, flowStatus, lifecycleManager);
+    signalParentProcess(processInstance, flowStatus);
   }
 
   private void validateTerminalStatus(ProcessFlowStatus flowStatus) {
@@ -319,8 +319,9 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return flowStatus == ProcessFlowStatus.SUSPENDED || flowStatus == ProcessFlowStatus.FAILED;
   }
 
-  private void suspendRemainingChildren(
-      ProcessInstance processInstance, ExecutionLifecycleManager lifecycleManager) {
+  private void suspendRemainingChildren(ProcessInstance processInstance) {
+    ExecutionLifecycleManager lifecycleManager =
+        getService(processInstance, ExecutionLifecycleManager.class);
     List<String> remainingChildren = processInstance.getRemainingChildInstances();
     if (CollectionUtils.isNotEmpty(remainingChildren)) {
       for (String childId : remainingChildren) {
@@ -329,20 +330,54 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     }
   }
 
+  /**
+   * Signals parent process based on child process completion. Handles both concurrent (fork-join)
+   * and sequential execution patterns.
+   */
   private void signalParentProcess(
-      ProcessInstance processInstance,
-      ProcessFlowStatus flowStatus,
-      ExecutionLifecycleManager lifecycleManager) {
-    ProcessInstanceStore processInstanceStore =
-        getService(processInstance, ProcessInstanceStore.class);
-    Optional<ProcessInstance> parentInstance =
-        processInstanceStore.findById(processInstance.getParentId(), ProcessFlowStatus.WAIT);
-    if (parentInstance.isEmpty()) {
+      ProcessInstance completedInstance, ProcessFlowStatus flowStatus) {
+    ProcessInstance parentInstance = findParentInstance(completedInstance);
+    if (parentInstance == null) {
       return;
     }
-    Object executionResult = extractExecutionResult(processInstance, flowStatus);
-    lifecycleManager.signalProcess(
-        processInstance, parentInstance.get(), flowStatus, executionResult);
+    if (completedInstance.isConcurrent()) {
+      handleForkJoinCompletion(completedInstance, parentInstance, flowStatus);
+      return;
+    }
+    handleSequentialCompletion(completedInstance, parentInstance, flowStatus);
+  }
+
+  private ProcessInstance findParentInstance(ProcessInstance childInstance) {
+    ProcessInstanceStore processInstanceStore =
+        getService(childInstance, ProcessInstanceStore.class);
+    return processInstanceStore
+        .findById(childInstance.getParentId(), ProcessFlowStatus.WAIT)
+        .orElse(null);
+  }
+
+  private void handleForkJoinCompletion(
+      ProcessInstance completedInstance,
+      ProcessInstance parentInstance,
+      ProcessFlowStatus flowStatus) {
+    ProcessManager processManager = getService(completedInstance, ProcessManager.class);
+    ProcessRuntime processRuntime =
+        processManager.getOrCreateProcessRuntime(parentInstance.getProcessSnapshotId());
+    TaskRuntime taskRuntime = processRuntime.getOrCreateTaskRuntime(parentInstance.getCurrTaskId());
+    if (!(taskRuntime instanceof ForkJoinRuntime forkJoinRuntime)) {
+      LOGGER.error("Parent task must be ForkJoinRuntime for concurrent execution");
+      return;
+    }
+    forkJoinRuntime.join(completedInstance, parentInstance, flowStatus);
+  }
+
+  private void handleSequentialCompletion(
+      ProcessInstance completedInstance,
+      ProcessInstance parentInstance,
+      ProcessFlowStatus flowStatus) {
+    Object executionResult = extractExecutionResult(completedInstance, flowStatus);
+    ExecutionLifecycleManager lifecycleManager =
+        getService(completedInstance, ExecutionLifecycleManager.class);
+    lifecycleManager.signalProcess(completedInstance, parentInstance, flowStatus, executionResult);
   }
 
   /**
