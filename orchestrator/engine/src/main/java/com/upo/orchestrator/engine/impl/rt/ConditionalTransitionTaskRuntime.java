@@ -13,7 +13,6 @@ import com.upo.orchestrator.api.domain.TransitionType;
 import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.utilities.ds.CollectionUtils;
-import com.upo.utilities.filter.impl.FilterEvaluator;
 
 /**
  * Runtime implementation for handling conditional flow control in process orchestration. This class
@@ -68,8 +67,7 @@ public class ConditionalTransitionTaskRuntime extends AbstractTaskOrchestrationR
         if (transition.getType() == TransitionType.DEFAULT) {
           defaultTransition = transition;
         } else if (transition.getType() == TransitionType.CONDITIONAL) {
-          Optional<FilterEvaluator<ProcessInstance>> predicate = transition.getPredicate();
-          if (predicate.isEmpty() || predicate.get().evaluate(processInstance)) {
+          if (evaluateTransitionPredicate(processInstance, transition)) {
             matchingTransition = transition;
             break;
           }
