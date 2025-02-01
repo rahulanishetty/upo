@@ -8,7 +8,6 @@
 package com.upo.orchestrator.engine.services;
 
 import com.upo.orchestrator.engine.ProcessFlowStatus;
-import com.upo.orchestrator.engine.TaskRuntime;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
 public interface ExecutionLifecycleManager {
@@ -22,7 +21,7 @@ public interface ExecutionLifecycleManager {
   void signalProcess(
       ProcessInstance processInstance, String targetInstanceId, ProcessFlowStatus flowStatus);
 
-  void resumeProcessFromTask(ProcessInstance processInstance, TaskRuntime taskRuntime);
+  void continueProcessFromTask(String processInstanceId, String taskId);
 
   void cleanup(ProcessInstance processInstance);
 }

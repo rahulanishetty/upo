@@ -60,4 +60,17 @@ public interface ProcessInstanceStore {
    * @return the process instance if found, null otherwise
    */
   Optional<ProcessInstance> findById(String id, ProcessFlowStatus expectedStatus);
+
+  /**
+   * Adds process instance IDs to the existing set if any of instances that the parent process is
+   * waiting on. This is typically used in scenarios where a parent process needs to track and wait
+   * for multiple child processes to complete.
+   *
+   * @param parentInstance The parent process instance that will wait for the child instances. This
+   *     instance maintains the set of child processes it depends on.
+   * @param waitOnInstanceIds Collection of process instance IDs to add to the waiting set. These
+   *     IDs represent child process instances that the parent process
+   */
+  void addWaitingOnInstanceIds(
+      ProcessInstance parentInstance, Collection<String> waitOnInstanceIds);
 }

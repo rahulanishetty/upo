@@ -260,7 +260,8 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       if (saveProcessInstance(processInstance, ProcessFlowStatus.CONTINUE)) {
         ExecutionLifecycleManager executionLifecycleManager =
             getService(processInstance, ExecutionLifecycleManager.class);
-        executionLifecycleManager.resumeProcessFromTask(processInstance, this);
+        executionLifecycleManager.continueProcessFromTask(
+            processInstance.getId(), this.getTaskId());
       }
       return Optional.of(Next.EMPTY);
     }

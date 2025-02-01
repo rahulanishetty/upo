@@ -7,12 +7,14 @@
 */
 package com.upo.orchestrator.engine.impl.distributed;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 
 import com.upo.orchestrator.engine.ProcessFlowStatus;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.services.ProcessInstanceStore;
+import com.upo.resource.redis.RedisTemplate;
 import com.upo.resource.redis.RedisTemplateFactory;
 import com.upo.resource.redis.impl.JsonRedisCodec;
 import com.upo.resource.redis.impl.JsonRepositoryServiceImpl;
@@ -45,5 +47,13 @@ public class ProcessInstanceStoreImpl extends JsonRepositoryServiceImpl<ProcessI
   public Optional<ProcessInstance> findById(String id, ProcessFlowStatus expectedStatus) {
     return findById(id)
         .filter(processInstance -> Objects.equals(processInstance.getStatus(), expectedStatus));
+  }
+
+  @Override
+  public void addWaitingOnInstanceIds(
+      ProcessInstance parentInstance, Collection<String> waitOnInstanceIds) {
+    RedisTemplate rawTemplate = getRawTemplate();
+    rawTemplate.addToSet(
+        "waitOnChildren/" + parentInstance.getId(), waitOnInstanceIds.toArray(new String[0]));
   }
 }

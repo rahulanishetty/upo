@@ -125,7 +125,7 @@ public class CollectionUtils {
     return result;
   }
 
-  public static <K, V> Object getValue(Map<K, V> input, K key) {
+  public static <K, V> V getValue(Map<K, V> input, K key) {
     if (isEmpty(input)) {
       return null;
     }
