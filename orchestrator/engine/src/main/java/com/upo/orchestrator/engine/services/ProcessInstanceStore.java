@@ -7,6 +7,7 @@
 */
 package com.upo.orchestrator.engine.services;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import com.upo.orchestrator.engine.ProcessFlowStatus;
@@ -26,6 +27,14 @@ public interface ProcessInstanceStore {
    * @return true if save was successful, false otherwise
    */
   boolean save(ProcessInstance processInstance);
+
+  /**
+   * Saves or updates a process instances in the store.
+   *
+   * @param processInstances the process instances to save
+   * @return true if save was successful, false otherwise
+   */
+  boolean saveMany(Collection<ProcessInstance> processInstances);
 
   /**
    * Saves or updates a process instance in the store if in expected status

@@ -220,7 +220,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return view;
   }
 
-  private static boolean evaluateTransitionPredicate(
+  protected static boolean evaluateTransitionPredicate(
       ProcessInstance processInstance, Transition toEvaluate) {
     Optional<FilterEvaluator<ProcessInstance>> predicate = toEvaluate.getPredicate();
     boolean matched = true;
@@ -295,17 +295,16 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   private void handleInstanceCompletion(
       ProcessInstance processInstance, ProcessFlowStatus flowStatus) {
     validateTerminalStatus(flowStatus);
-    if (ProcessUtils.isRootInstance(processInstance)) {
-      ExecutionLifecycleManager lifecycleManager =
-          getService(processInstance, ExecutionLifecycleManager.class);
-      lifecycleManager.cleanup(processInstance);
-      return;
+    if (!ProcessUtils.isRootInstance(processInstance)) {
+     // Suspend remaining child instances if parent is cancelled/suspended
+      if (shouldSuspendChildren(flowStatus)) {
+        suspendRemainingChildren(processInstance);
+      }
+      signalParentProcess(processInstance, flowStatus);
     }
-   // Suspend remaining child instances if parent is cancelled/suspended
-    if (shouldSuspendChildren(flowStatus)) {
-      suspendRemainingChildren(processInstance);
-    }
-    signalParentProcess(processInstance, flowStatus);
+    ExecutionLifecycleManager lifecycleManager =
+        getService(processInstance, ExecutionLifecycleManager.class);
+    lifecycleManager.cleanup(processInstance);
   }
 
   private void validateTerminalStatus(ProcessFlowStatus flowStatus) {
@@ -342,9 +341,9 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     }
     if (completedInstance.isConcurrent()) {
       handleForkJoinCompletion(completedInstance, parentInstance, flowStatus);
-      return;
+    } else {
+      handleSequentialCompletion(completedInstance, parentInstance, flowStatus);
     }
-    handleSequentialCompletion(completedInstance, parentInstance, flowStatus);
   }
 
   private ProcessInstance findParentInstance(ProcessInstance childInstance) {
@@ -359,10 +358,14 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       ProcessInstance completedInstance,
       ProcessInstance parentInstance,
       ProcessFlowStatus flowStatus) {
+    String joinTaskId = completedInstance.getTerminateAtTaskId();
+    if (joinTaskId == null) {
+      return;
+    }
     ProcessManager processManager = getService(completedInstance, ProcessManager.class);
     ProcessRuntime processRuntime =
         processManager.getOrCreateRuntimeForSnapshot(parentInstance.getProcessSnapshotId());
-    TaskRuntime taskRuntime = processRuntime.getOrCreateTaskRuntime(parentInstance.getCurrTaskId());
+    TaskRuntime taskRuntime = processRuntime.getOrCreateTaskRuntime(joinTaskId);
     if (!(taskRuntime instanceof ForkJoinRuntime forkJoinRuntime)) {
       LOGGER.error("Parent task must be ForkJoinRuntime for concurrent execution");
       return;
@@ -412,11 +415,11 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     Optional<Next> next = Optional.empty();
     TaskResult taskResult = processFlowResult.getTaskResult();
     if (taskResult instanceof TaskResult.Wait wait) {
-      ProcessCallbackFactory processCallbackFactory =
-          getService(processInstance, ProcessCallbackFactory.class);
+      ProcessInstanceCallbackFactory processInstanceCallbackFactory =
+          getService(processInstance, ProcessInstanceCallbackFactory.class);
       if (wait.getCallbackType() != null) {
-        ProcessCallback callback =
-            processCallbackFactory.createCallback(
+        ProcessInstanceCallback callback =
+            processInstanceCallbackFactory.createCallback(
                 processInstance, wait.getCallbackType(), wait.getCallbackData());
         if (callback != null) {
           callback.execute();

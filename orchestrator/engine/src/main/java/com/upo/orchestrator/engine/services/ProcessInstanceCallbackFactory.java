@@ -9,11 +9,14 @@ package com.upo.orchestrator.engine.services;
 
 import java.util.Map;
 
-import com.upo.orchestrator.engine.ProcessCallback;
+import com.upo.orchestrator.engine.ProcessInstanceCallback;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
-/** Factory for creating process-specific post-commit actions. */
-public interface ProcessCallbackFactory {
+/** Factory for creating process-instance-specific post-commit actions. */
+public interface ProcessInstanceCallbackFactory {
+
+  void register(ProcessInstanceCallbackBuilder builder);
+
   /**
    * Creates callback handler for post-commit process operations.
    *
@@ -21,6 +24,6 @@ public interface ProcessCallbackFactory {
    * @param callbackType Type of callback to create (e.g. START_SUBPROCESS)
    * @param callbackData Operation-specific data
    */
-  ProcessCallback createCallback(
+  ProcessInstanceCallback createCallback(
       ProcessInstance processInstance, String callbackType, Map<String, Object> callbackData);
 }

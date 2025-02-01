@@ -8,6 +8,6 @@
 package com.upo.orchestrator.engine;
 
 /** Represents a post-commit process operation. */
-public interface ProcessCallback {
+public interface ProcessInstanceCallback {
   void execute();
 }
