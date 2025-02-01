@@ -7,9 +7,7 @@
 */
 package com.upo.orchestrator.engine;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents the result of a task execution step. Supports multi-phase execution patterns like
@@ -69,7 +67,7 @@ public abstract sealed class TaskResult {
     this.variables.add(variable);
   }
 
-  public static final class Continue extends TaskResult {
+  public static sealed class Continue extends TaskResult {
     private Continue(Collection<Variable> variables) {
       super(Status.CONTINUE);
       setVariables(variables);
@@ -77,6 +75,25 @@ public abstract sealed class TaskResult {
 
     public static Continue with(Collection<Variable> variables) {
       return new Continue(variables);
+    }
+  }
+
+  public static final class ContinueWithTransitions extends Continue {
+
+    private final List<Transition> transitions;
+
+    private ContinueWithTransitions(Collection<Variable> variables, List<Transition> transitions) {
+      super(variables);
+      this.transitions = transitions;
+    }
+
+    public List<Transition> getTransitions() {
+      return transitions;
+    }
+
+    public static ContinueWithTransitions with(
+        Collection<Variable> variables, List<Transition> transitions) {
+      return new ContinueWithTransitions(variables, transitions);
     }
   }
 
