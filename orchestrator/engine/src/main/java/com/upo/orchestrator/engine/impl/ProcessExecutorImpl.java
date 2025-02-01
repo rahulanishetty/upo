@@ -15,6 +15,7 @@ import com.upo.orchestrator.engine.models.ProcessEnv;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.services.EnvironmentProvider;
 import com.upo.orchestrator.engine.services.ProcessInstanceStore;
+import com.upo.orchestrator.engine.utils.ProcessUtils;
 import com.upo.utilities.context.RequestContext;
 import com.upo.utilities.filter.impl.FilterEvaluator;
 import com.upo.utilities.ulid.UlidUtils;
@@ -161,6 +162,25 @@ public class ProcessExecutorImpl implements ProcessExecutor {
       return null;
     }
     return processInstance;
+  }
+
+  public static ProcessInstance createChildInstance(ProcessInstance parentInstance) {
+    ProcessInstance childInstance = new ProcessInstance();
+    childInstance.setId(UlidUtils.createId());
+    childInstance.setStartTime(System.currentTimeMillis());
+    childInstance.setTaskCount(0L);
+    childInstance.setStatus(ProcessFlowStatus.CONTINUE);
+    childInstance.setVariableContainer(new VariableContainerImpl());
+
+    childInstance.setRootId(ProcessUtils.getRootInstanceId(parentInstance));
+    childInstance.setParentId(parentInstance.getId());
+    childInstance.setProcessId(parentInstance.getProcessId());
+    childInstance.setProcessSnapshotId(parentInstance.getProcessSnapshotId());
+    childInstance.setProcessVersion(parentInstance.getProcessVersion());
+    childInstance.setExecutionStrategy(parentInstance.getExecutionStrategy());
+    childInstance.setProcessEnv(parentInstance.getProcessEnv().copy());
+
+    return childInstance;
   }
 
   /**

@@ -38,4 +38,11 @@ public class ProcessUtils {
   public static boolean isRootInstance(ProcessInstance processInstance) {
     return processInstance.getRootId() == null;
   }
+
+  public static String getRootInstanceId(ProcessInstance processInstance) {
+    if (isRootInstance(processInstance)) {
+      return processInstance.getId();
+    }
+    return processInstance.getRootId();
+  }
 }

@@ -39,6 +39,11 @@ public abstract class AbstractTaskRuntime implements TaskRuntime {
     this.taskId = taskId;
   }
 
+  @Override
+  public String getTaskId() {
+    return taskId;
+  }
+
   public void setInputs(Object inputs) {
     this.inputs = getInputValueResolver().resolve(inputs);
     if (this.inputs == null) {

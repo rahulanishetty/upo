@@ -8,6 +8,7 @@
 package com.upo.orchestrator.engine;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import com.upo.orchestrator.api.domain.TransitionType;
 import com.upo.orchestrator.engine.models.ProcessInstance;
@@ -20,4 +21,23 @@ public interface Transition {
   TaskRuntime getNextTaskRuntime();
 
   Optional<FilterEvaluator<ProcessInstance>> getPredicate();
+
+  static Transition defaultTransition(Supplier<TaskRuntime> nextRuntime) {
+    return new Transition() {
+      @Override
+      public TransitionType getType() {
+        return TransitionType.DEFAULT;
+      }
+
+      @Override
+      public TaskRuntime getNextTaskRuntime() {
+        return nextRuntime.get();
+      }
+
+      @Override
+      public Optional<FilterEvaluator<ProcessInstance>> getPredicate() {
+        return Optional.empty();
+      }
+    };
+  }
 }

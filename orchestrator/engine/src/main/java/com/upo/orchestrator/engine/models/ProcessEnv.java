@@ -9,8 +9,10 @@ package com.upo.orchestrator.engine.models;
 
 import java.util.Map;
 
+import com.alibaba.fastjson2.TypeReference;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.upo.orchestrator.engine.ProcessServices;
+import com.upo.utilities.json.Utils;
 
 /**
  * Represents the environment in which processes execute. Provides access to environment variables,
@@ -90,5 +92,19 @@ public class ProcessEnv {
 
   public void setProcessServices(ProcessServices processServices) {
     this.processServices = processServices;
+  }
+
+  public ProcessEnv copy() {
+    ProcessEnv clone = new ProcessEnv();
+    clone.setEnv(copyMap(env));
+    clone.setContext(copyMap(context));
+    clone.setSession(copyMap(session));
+    clone.setProcessServices(processServices);
+    return clone;
+  }
+
+  private static Map<String, Object> copyMap(Map<String, Object> toCopy) {
+    String json = Utils.toJson(toCopy);
+    return Utils.fromJson(json, new TypeReference<Map<String, Object>>() {}.getType());
   }
 }

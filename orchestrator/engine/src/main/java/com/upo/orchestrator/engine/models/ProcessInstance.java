@@ -45,9 +45,6 @@ public class ProcessInstance {
   /** represents if this process instance is a concurrent instance */
   private boolean concurrent;
 
-  /** children instances spawned by this instance */
-  private List<String> childInstanceIds;
-
   /**
    * Optional task ID where process execution should terminate. Used to execute subset of process or
    * handle early termination.
@@ -160,14 +157,6 @@ public class ProcessInstance {
 
   public void setConcurrent(boolean concurrent) {
     this.concurrent = concurrent;
-  }
-
-  public List<String> getChildInstanceIds() {
-    return childInstanceIds;
-  }
-
-  public void setChildInstanceIds(List<String> childInstanceIds) {
-    this.childInstanceIds = childInstanceIds;
   }
 
   public String getTerminateAtTaskId() {

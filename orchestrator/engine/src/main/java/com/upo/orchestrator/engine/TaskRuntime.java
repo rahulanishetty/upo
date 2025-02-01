@@ -21,6 +21,11 @@ import com.upo.orchestrator.engine.models.ProcessInstance;
 public interface TaskRuntime {
 
   /**
+   * @return the taskId corresponding to this runtime
+   */
+  String getTaskId();
+
+  /**
    * Executes this task within the given process instance. Task execution can: - Complete
    * synchronously - Start asynchronous operation - Initiate external interaction based on the
    * task's execution pattern.
