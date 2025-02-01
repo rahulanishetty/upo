@@ -23,8 +23,19 @@ public interface ProcessManager {
    * <p>This method ensures that for a given identifier, a single process runtime instance is
    * maintained. If no runtime exists for the specified ID, a new runtime is created.
    *
-   * @param id A unique identifier for the process runtime Must not be null or empty
+   * @param processId A unique identifier for the process definition snapshot
    * @return An existing or newly created ProcessRuntime instance
    */
-  ProcessRuntime getOrCreateProcessRuntime(String id);
+  ProcessRuntime getOrCreateRuntime(String processId);
+
+  /**
+   * Retrieves an existing process runtime or creates a new one if it does not exist.
+   *
+   * <p>This method ensures that for a given identifier, a single process runtime instance is
+   * maintained. If no runtime exists for the specified ID, a new runtime is created.
+   *
+   * @param processSnapshotId A unique identifier for the process definition snapshot
+   * @return An existing or newly created ProcessRuntime instance
+   */
+  ProcessRuntime getOrCreateRuntimeForSnapshot(String processSnapshotId);
 }

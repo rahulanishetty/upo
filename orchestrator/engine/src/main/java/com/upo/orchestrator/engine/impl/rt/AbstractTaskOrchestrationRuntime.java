@@ -361,7 +361,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       ProcessFlowStatus flowStatus) {
     ProcessManager processManager = getService(completedInstance, ProcessManager.class);
     ProcessRuntime processRuntime =
-        processManager.getOrCreateProcessRuntime(parentInstance.getProcessSnapshotId());
+        processManager.getOrCreateRuntimeForSnapshot(parentInstance.getProcessSnapshotId());
     TaskRuntime taskRuntime = processRuntime.getOrCreateTaskRuntime(parentInstance.getCurrTaskId());
     if (!(taskRuntime instanceof ForkJoinRuntime forkJoinRuntime)) {
       LOGGER.error("Parent task must be ForkJoinRuntime for concurrent execution");
