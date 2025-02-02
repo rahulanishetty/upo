@@ -38,6 +38,11 @@ public class ProcessInstanceCallbackFactoryImpl implements ProcessInstanceCallba
   @Override
   public ProcessInstanceCallback createCallback(
       ProcessInstance processInstance, String callbackType, Map<String, Object> callbackData) {
-    return null;
+    ProcessInstanceCallbackBuilder processInstanceCallbackBuilder =
+        this.callbackRegistry.get(callbackType);
+    if (processInstanceCallbackBuilder == null) {
+      throw new IllegalArgumentException("no builder found for type: " + callbackType);
+    }
+    return processInstanceCallbackBuilder.build(processInstance, callbackData);
   }
 }
