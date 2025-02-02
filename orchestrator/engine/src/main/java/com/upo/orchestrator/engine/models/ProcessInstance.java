@@ -7,8 +7,6 @@
 */
 package com.upo.orchestrator.engine.models;
 
-import java.util.List;
-
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.upo.orchestrator.engine.ProcessDetails;
 import com.upo.orchestrator.engine.ProcessFlowStatus;
@@ -60,9 +58,6 @@ public class ProcessInstance {
 
   /** Status of current task */
   private ProcessFlowStatus status;
-
-  /** the child instances this instance needs to wait for completion, before resuming */
-  private List<String> remainingChildInstances;
 
   /** ID of the currently executing task. */
   private String currTaskId;
@@ -190,14 +185,6 @@ public class ProcessInstance {
 
   public void setStatus(ProcessFlowStatus status) {
     this.status = status;
-  }
-
-  public List<String> getRemainingChildInstances() {
-    return remainingChildInstances;
-  }
-
-  public void setRemainingChildInstances(List<String> remainingChildInstances) {
-    this.remainingChildInstances = remainingChildInstances;
   }
 
   public String getCurrTaskId() {

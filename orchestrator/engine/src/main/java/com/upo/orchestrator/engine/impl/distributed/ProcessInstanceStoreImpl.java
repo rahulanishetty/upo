@@ -68,8 +68,8 @@ public class ProcessInstanceStoreImpl extends JsonRepositoryServiceImpl<ProcessI
   }
 
   @Override
-  public Set<String> getRemainingChildren(ProcessInstance parentInstance) {
+  public Set<String> getRemainingChildren(ProcessInstance processInstance) {
     RedisTemplate rawTemplate = getRawTemplate();
-    return rawTemplate.getSetMembers("waitOnChildren/" + parentInstance.getId());
+    return rawTemplate.getSetMembers("waitOnChildren/" + processInstance.getId());
   }
 }

@@ -15,6 +15,7 @@ import com.upo.orchestrator.api.domain.TransitionType;
 import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.impl.ProcessExecutorImpl;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.orchestrator.engine.services.ExecutionLifecycleManager;
 import com.upo.orchestrator.engine.services.ProcessInstanceStore;
 import com.upo.utilities.ds.CollectionUtils;
 
@@ -76,12 +77,16 @@ public class ForkTransitionsTaskRuntime extends AbstractTaskOrchestrationRuntime
     List<ProcessInstance> concurrentInstances =
         createAndSaveForkedInstances(processInstance, matchingTransitions);
 
-    Map<String, Object> callbackData = createCallbackData(concurrentInstances);
     if (joinTaskId != null) {
-      List<String> concurrentInstanceIds =
-          CollectionUtils.transformToList(concurrentInstances, ProcessInstance::getId);
-      processInstance.setRemainingChildInstances(concurrentInstanceIds);
+      Map<String, Object> callbackData = createCallbackData(concurrentInstances);
       return new TaskResult.Wait(Collections.emptyList(), TYPE, callbackData);
+    }
+
+    ExecutionLifecycleManager lifecycleManager =
+        getService(processInstance, ExecutionLifecycleManager.class);
+    for (ProcessInstance concurrentInstance : concurrentInstances) {
+      lifecycleManager.continueProcessFromTask(
+          concurrentInstance.getId(), concurrentInstance.getCurrTaskId());
     }
     return TaskResult.Continue.with(Collections.emptyList());
   }

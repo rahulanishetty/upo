@@ -92,12 +92,12 @@ public interface ProcessInstanceStore {
    * Returns the set of child process IDs that the parent is still waiting on. This provides the
    * current set of incomplete child processes without modifying the waiting set.
    *
-   * @param parentInstance The parent process instance that is waiting on child instances. This
+   * @param processInstance The parent process instance that is waiting on child instances. This
    *     instance maintains the set of child processes it depends on.
    * @return Set<String> Set of process instance IDs that haven't completed yet. Empty set if all
    *     children are complete.
    *     <p>Note: The result is a point-in-time snapshot and may change if called again, especially
    *     in concurrent scenarios.
    */
-  Set<String> getRemainingChildren(ProcessInstance parentInstance);
+  Set<String> getRemainingChildren(ProcessInstance processInstance);
 }
