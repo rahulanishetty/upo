@@ -26,7 +26,7 @@ public interface ResolvableValue {
    *     expressions - Number from calculation - Boolean from condition - Map/List of resolved
    *     values
    */
-  Object evaluate(ProcessInstance context);
+  <T> T evaluate(ProcessInstance context);
 
   /**
    * Returns the set of variable references this value depends on for evaluation. This is used to

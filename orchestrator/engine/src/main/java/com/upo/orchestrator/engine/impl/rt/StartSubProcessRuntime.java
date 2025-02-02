@@ -30,8 +30,7 @@ public class StartSubProcessRuntime extends AbstractTaskOrchestrationRuntime {
 
   @Override
   protected TaskResult doExecute(ProcessInstance processInstance) {
-   //noinspection unchecked
-    Map<String, Object> processed = (Map<String, Object>) inputs.evaluate(processInstance);
+    Map<String, Object> processed = inputs.evaluate(processInstance);
     boolean async = CollectionUtils.getBooleanValue(processed, "async", false);
     if (async) {
       return startProcessAsync(processInstance, processed);

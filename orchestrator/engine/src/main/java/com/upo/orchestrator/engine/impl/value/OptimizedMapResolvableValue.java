@@ -40,7 +40,7 @@ public class OptimizedMapResolvableValue implements ResolvableValue {
   }
 
   @Override
-  public Object evaluate(ProcessInstance context) {
+  public <T> T evaluate(ProcessInstance context) {
    // Copy static map - this preserves order
     Map<String, Object> result = new LinkedHashMap<>(staticValues);
 
@@ -53,7 +53,8 @@ public class OptimizedMapResolvableValue implements ResolvableValue {
         result.put(entry.getKey(), evaluate);
       }
     }
-    return result;
+   //noinspection unchecked
+    return (T) result;
   }
 
   @Override

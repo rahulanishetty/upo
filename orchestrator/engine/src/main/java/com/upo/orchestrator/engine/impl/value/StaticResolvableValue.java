@@ -28,8 +28,9 @@ public class StaticResolvableValue implements ResolvableValue {
   }
 
   @Override
-  public Object evaluate(ProcessInstance context) {
-    return value;
+  public <T> T evaluate(ProcessInstance context) {
+   //noinspection unchecked
+    return (T) value;
   }
 
   @Override

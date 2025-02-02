@@ -90,7 +90,7 @@ public class ArrayTransformResolver implements InputValueResolver {
     }
 
     @Override
-    public Object evaluate(ProcessInstance context) {
+    public <T> T evaluate(ProcessInstance context) {
       Object evaluate = source.evaluate(context);
       if (evaluate == null) {
         return null;
@@ -112,7 +112,8 @@ public class ArrayTransformResolver implements InputValueResolver {
           context.setVariableContainer(original);
         }
       }
-      return result;
+     //noinspection unchecked
+      return (T) result;
     }
 
     @Override

@@ -28,7 +28,7 @@ public class CompositeResolvableValue implements ResolvableValue {
   }
 
   @Override
-  public Object evaluate(ProcessInstance context) {
+  public <T> T evaluate(ProcessInstance context) {
     StringBuilder result = new StringBuilder();
 
     for (ResolvableValue part : parts) {
@@ -36,7 +36,8 @@ public class CompositeResolvableValue implements ResolvableValue {
       result.append(evaluated != null ? evaluated.toString() : "");
     }
 
-    return result.toString();
+   //noinspection unchecked
+    return (T) result.toString();
   }
 
   @Override

@@ -52,7 +52,7 @@ public class DefaultInputValueResolverTest {
   void testPrimitiveValues() {
     ResolvableValue result = resolver.resolve(42);
     assertInstanceOf(StaticResolvableValue.class, result);
-    assertEquals(42, result.evaluate(processInstance));
+    assertEquals(42, (int) result.evaluate(processInstance));
   }
 
   @Test
@@ -253,7 +253,7 @@ public class DefaultInputValueResolverTest {
     String expression = "[[{{condition}} ? {{value}} * 2 : {{value}} / 2]]";
     ResolvableValue result = resolver.resolve(expression);
 
-    assertEquals(200, result.evaluate(processInstance));
+    assertEquals(200, (int) result.evaluate(processInstance));
 
     verify(variableContainer).readVariable(conditionPath);
     verify(variableContainer, times(2)).readVariable(valuePath);

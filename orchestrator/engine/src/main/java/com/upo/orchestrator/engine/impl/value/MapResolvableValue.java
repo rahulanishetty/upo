@@ -26,7 +26,7 @@ public class MapResolvableValue implements ResolvableValue {
   }
 
   @Override
-  public Object evaluate(ProcessInstance context) {
+  public <T> T evaluate(ProcessInstance context) {
     Map<String, Object> result = new LinkedHashMap<>();
     for (Map.Entry<String, ResolvableValue> entry : valueMap.entrySet()) {
       Object value = entry.getValue().evaluate(context);
@@ -34,7 +34,8 @@ public class MapResolvableValue implements ResolvableValue {
         result.put(entry.getKey(), value);
       }
     }
-    return result;
+   //noinspection unchecked
+    return (T) result;
   }
 
   @Override

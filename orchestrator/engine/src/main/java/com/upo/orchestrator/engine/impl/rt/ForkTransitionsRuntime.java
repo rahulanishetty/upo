@@ -61,7 +61,7 @@ public class ForkTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
   protected TaskResult doExecute(ProcessInstance processInstance) {
     List<Transition> matchingTransitions = findTransitionsToFork(processInstance);
 
-    Map<String, Object> processedInputs = evaluateInputs(processInstance);
+    Map<String, Object> processedInputs = inputs.evaluate(processInstance);
     boolean waitForChildren =
         joinTaskId != null && !(boolean) processedInputs.getOrDefault("noWait", false);
 
@@ -103,11 +103,6 @@ public class ForkTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
       return Collections.emptyList();
     }
     return nextTransitionsResolver.resolveTransitions(this, processInstance, null);
-  }
-
-  @SuppressWarnings("unchecked")
-  private Map<String, Object> evaluateInputs(ProcessInstance processInstance) {
-    return (Map<String, Object>) inputs.evaluate(processInstance);
   }
 
   private void startForkedInstances(

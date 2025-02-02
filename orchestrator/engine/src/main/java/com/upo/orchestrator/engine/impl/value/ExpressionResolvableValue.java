@@ -35,13 +35,14 @@ public class ExpressionResolvableValue implements ResolvableValue {
   }
 
   @Override
-  public Object evaluate(ProcessInstance context) {
+  public <T> T evaluate(ProcessInstance context) {
     VariableContainer variableContainer = context.getVariableContainer();
    // include keys with null values, this is to ensure groovy execution doesn't
    // fail with undefined key
     Map<String, Object> variables =
         CollectionUtils.transformValueInMap(this.variables, variableContainer::readVariable, true);
-    return evaluateScript(compiledScript, variables);
+   //noinspection unchecked
+    return (T) evaluateScript(compiledScript, variables);
   }
 
   @Override

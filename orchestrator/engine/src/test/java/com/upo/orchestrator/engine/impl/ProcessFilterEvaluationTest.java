@@ -169,8 +169,9 @@ public class ProcessFilterEvaluationTest {
     }
 
     @Override
-    public Object evaluate(ProcessInstance instance) {
-      return value;
+    public <T> T evaluate(ProcessInstance instance) {
+     //noinspection unchecked
+      return (T) value;
     }
 
     @Override

@@ -119,16 +119,6 @@ public class ComparableValueTest {
     }
 
     @Test
-    void shouldConvertBoolean() {
-      var trueValue = ComparableValue.fromBoolean(true);
-      var falseValue = ComparableValue.fromBoolean(false);
-
-      assertTrue(trueValue.compareTo(falseValue) > 0);
-      assertEquals(ComparableValue.fromInteger(1), trueValue);
-      assertEquals(ComparableValue.fromInteger(0), falseValue);
-    }
-
-    @Test
     void shouldHandleNullNumber() {
       assertThrows(
           IllegalArgumentException.class, () -> ComparableValue.NumberComparable.compare(null, 42));

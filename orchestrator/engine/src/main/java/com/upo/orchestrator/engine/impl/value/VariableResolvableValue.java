@@ -29,8 +29,9 @@ public class VariableResolvableValue implements ResolvableValue {
   }
 
   @Override
-  public Object evaluate(ProcessInstance context) {
-    return context.getVariableContainer().readVariable(variablePath);
+  public <T> T evaluate(ProcessInstance context) {
+   //noinspection unchecked
+    return (T) context.getVariableContainer().readVariable(variablePath);
   }
 
   @Override

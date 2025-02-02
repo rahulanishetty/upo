@@ -68,7 +68,7 @@ public class ArrayToMapTransformResolver implements InputValueResolver {
     }
 
     @Override
-    public Object evaluate(ProcessInstance context) {
+    public <T> T evaluate(ProcessInstance context) {
       Object sourceValue = source.evaluate(context);
       if (sourceValue == null) {
         return null;
@@ -99,7 +99,8 @@ public class ArrayToMapTransformResolver implements InputValueResolver {
           context.setVariableContainer(original);
         }
       }
-      return result;
+     //noinspection unchecked
+      return (T) result;
     }
 
     @Override

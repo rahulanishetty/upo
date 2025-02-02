@@ -26,7 +26,7 @@ public class ListResolvableValue implements ResolvableValue {
   }
 
   @Override
-  public Object evaluate(ProcessInstance context) {
+  public <T> T evaluate(ProcessInstance context) {
     List<Object> result = new ArrayList<>();
     for (ResolvableValue value : values) {
       Object item = value.evaluate(context);
@@ -34,7 +34,8 @@ public class ListResolvableValue implements ResolvableValue {
         result.add(item);
       }
     }
-    return result;
+   //noinspection unchecked
+    return (T) result;
   }
 
   @Override
