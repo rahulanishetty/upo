@@ -159,4 +159,11 @@ public class CollectionUtils {
     }
     return result;
   }
+
+  public static <V> Set<V> nullSafeMutableSet(Set<V> set) {
+    if (isEmpty(set)) {
+      return Collections.emptySet();
+    }
+    return new LinkedHashSet<>(set);
+  }
 }

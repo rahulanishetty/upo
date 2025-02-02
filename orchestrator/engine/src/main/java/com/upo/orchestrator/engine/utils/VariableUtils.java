@@ -11,10 +11,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.upo.orchestrator.engine.ProcessServices;
 import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.VariableContainer;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.models.ProcessVariable;
+import com.upo.orchestrator.engine.services.ProcessInstanceStore;
 import com.upo.orchestrator.engine.services.VariableStore;
 import com.upo.utilities.ds.CollectionUtils;
 import com.upo.utilities.ds.Pair;
@@ -52,19 +54,52 @@ public class VariableUtils {
               processInstance, dependency.getFirstElement(), dependency.getSecondElement()));
     }
 
+    ProcessServices processServices = processInstance.getProcessEnv().getProcessServices();
    // Bulk load missing variables from persistent store
     if (CollectionUtils.isNotEmpty(missingVariableIds)) {
-      VariableStore variableStore =
-          processInstance.getProcessEnv().getProcessServices().getService(VariableStore.class);
+      VariableStore variableStore = processServices.getService(VariableStore.class);
       Map<String, ProcessVariable> loadedVariables = variableStore.findByIds(missingVariableIds);
 
+      dependencies = CollectionUtils.nullSafeMutableSet(dependencies);
      // Restore loaded variables into process instance memory
       if (CollectionUtils.isNotEmpty(loadedVariables)) {
         for (ProcessVariable variable : loadedVariables.values()) {
           variableContainer.restoreVariable(
               variable.getTaskId(), variable.getType(), variable.getPayload());
+          dependencies.remove(Pair.of(variable.getTaskId(), variable.getType()));
         }
       }
+
+      if (CollectionUtils.isNotEmpty(dependencies)
+          && processInstance.getParentId() != null
+          && processInstance.isConcurrent()) {
+        ProcessInstance parentInstance =
+            getParentInstance(processInstance, processServices, variableContainer);
+        if (parentInstance == null) {
+          return;
+        }
+        loadMissingReferencedVariables(parentInstance, dependencies);
+      }
     }
+  }
+
+  private static ProcessInstance getParentInstance(
+      ProcessInstance processInstance,
+      ProcessServices processServices,
+      VariableContainer variableContainer) {
+    if (processInstance.getParentId() == null) {
+      return null;
+    }
+    ProcessInstanceStore processInstanceStore =
+        processServices.getService(ProcessInstanceStore.class);
+    return processInstanceStore
+        .findById(processInstance.getParentId())
+        .map(
+            parentInstance -> {
+              parentInstance.setVariableContainer(variableContainer);
+              parentInstance.getProcessEnv().setProcessServices(processServices);
+              return parentInstance;
+            })
+        .orElse(null);
   }
 }
