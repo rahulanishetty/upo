@@ -38,6 +38,10 @@ public class JoinTransitionsTaskRuntime extends AbstractTaskOrchestrationRuntime
     }
    // Copy variables from completed instance to parent
     copyVariablesFromConcurrentInstance(concurrentInstance, parentInstance);
+   // there is a race condition here, where to multiple threads
+   // could see remainingChildren as empty, and cause duplicate signals
+   // however it wouldn't be an issue and is automatically handled by
+   // handleSignal
     Set<String> remainingChildren = processInstanceStore.getRemainingChildren(parentInstance);
 
    // Signal parent if:
