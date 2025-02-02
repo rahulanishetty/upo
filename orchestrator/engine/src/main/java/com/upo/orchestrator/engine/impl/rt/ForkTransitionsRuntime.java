@@ -48,10 +48,6 @@ public class ForkTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
         });
   }
 
-  public String getJoinTaskId() {
-    return joinTaskId;
-  }
-
   public void setJoinTaskId(String joinTaskId) {
     this.joinTaskId = joinTaskId;
   }
@@ -66,7 +62,8 @@ public class ForkTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
     List<Transition> matchingTransitions = findTransitionsToFork(processInstance);
 
     Map<String, Object> processedInputs = evaluateInputs(processInstance);
-    boolean waitForChildren = !(boolean) processedInputs.getOrDefault("noWait", false);
+    boolean waitForChildren =
+        joinTaskId != null && !(boolean) processedInputs.getOrDefault("noWait", false);
 
     List<Variable> variables = Collections.singletonList(toInput(processedInputs));
 
@@ -77,15 +74,15 @@ public class ForkTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
     List<ProcessInstance> forkedInstances =
         createAndSaveForkedInstances(processInstance, matchingTransitions);
 
-    if (joinTaskId == null || !waitForChildren) {
-     // Asynchronous execution - start all instances and continue
-      startForkedInstances(processInstance, forkedInstances);
-      return TaskResult.Continue.with(variables);
+    if (waitForChildren) {
+     // Synchronous execution with join point
+      Map<String, Object> callbackData = createCallbackData(forkedInstances);
+      return new TaskResult.Wait(variables, TYPE, callbackData);
     }
 
-   // Synchronous execution with join point
-    Map<String, Object> callbackData = createCallbackData(forkedInstances);
-    return new TaskResult.Wait(variables, TYPE, callbackData);
+   // Asynchronous execution - start all instances and continue
+    startForkedInstances(processInstance, forkedInstances);
+    return TaskResult.Continue.with(variables);
   }
 
   /**
@@ -98,7 +95,7 @@ public class ForkTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
    * @return true if execution should proceed sequentially, false if parallel execution is needed
    */
   private boolean shouldExecuteSequentially(List<Transition> transitions, boolean waitForChildren) {
-    return joinTaskId != null && transitions.size() <= 1 && waitForChildren;
+    return transitions.size() <= 1 && waitForChildren;
   }
 
   private List<Transition> resolveTransitions(ProcessInstance processInstance) {
