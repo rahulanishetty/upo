@@ -374,11 +374,11 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     ProcessRuntime processRuntime =
         processManager.getOrCreateRuntimeForSnapshot(parentInstance.getProcessSnapshotId());
     TaskRuntime taskRuntime = processRuntime.getOrCreateTaskRuntime(joinTaskId);
-    if (!(taskRuntime instanceof ForkJoinRuntime forkJoinRuntime)) {
+    if (!(taskRuntime instanceof JoinTransitionsRuntime joinTransitionsRuntime)) {
       LOGGER.error("Parent task must be ForkJoinRuntime for concurrent execution");
       return;
     }
-    forkJoinRuntime.join(completedInstance, parentInstance, flowStatus);
+    joinTransitionsRuntime.join(completedInstance, parentInstance, flowStatus);
   }
 
   private void handleSequentialCompletion(
