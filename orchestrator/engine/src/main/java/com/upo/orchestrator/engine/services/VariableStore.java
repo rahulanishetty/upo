@@ -10,6 +10,8 @@ package com.upo.orchestrator.engine.services;
 import java.util.Collection;
 import java.util.Map;
 
+import com.upo.orchestrator.engine.Variable;
+import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.models.ProcessVariable;
 
 /**
@@ -45,4 +47,18 @@ public interface VariableStore {
    * @return map of id vs variables, empty map if none found
    */
   Map<String, ProcessVariable> findByIds(Collection<String> ids);
+
+  /**
+   * Retrieves all variables associated with a process instance. Variables represent the data state
+   * and include inputs, outputs, and intermediate values created during process execution.
+   *
+   * @param processInstance The process instance to retrieve variables for. This can be either a
+   *     parent process or a child process instance.
+   * @return Collection<Variable> All variables associated with this process instance. Returns empty
+   *     collection if no variables exist.
+   *     <p>Note: Variables are scoped to the process instance - parent instances cannot directly
+   *     access child instance variables and vice versa. Use explicit variable passing for
+   *     cross-instance communication.
+   */
+  Collection<Variable> findVariablesForInstance(ProcessInstance processInstance);
 }

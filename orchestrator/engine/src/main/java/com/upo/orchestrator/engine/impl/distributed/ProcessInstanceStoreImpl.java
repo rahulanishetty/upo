@@ -10,6 +10,7 @@ package com.upo.orchestrator.engine.impl.distributed;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import com.upo.orchestrator.engine.ProcessFlowStatus;
 import com.upo.orchestrator.engine.models.ProcessInstance;
@@ -55,5 +56,20 @@ public class ProcessInstanceStoreImpl extends JsonRepositoryServiceImpl<ProcessI
     RedisTemplate rawTemplate = getRawTemplate();
     rawTemplate.addToSet(
         "waitOnChildren/" + parentInstance.getId(), waitOnInstanceIds.toArray(new String[0]));
+  }
+
+  @Override
+  public boolean removeCompletedInstanceId(
+      ProcessInstance parentInstance, String completedInstanceId) {
+    RedisTemplate rawTemplate = getRawTemplate();
+    return rawTemplate.removeFromSet(
+            "waitOnChildren/" + parentInstance.getId(), completedInstanceId)
+        > 0;
+  }
+
+  @Override
+  public Set<String> getRemainingChildren(ProcessInstance parentInstance) {
+    RedisTemplate rawTemplate = getRawTemplate();
+    return rawTemplate.getSetMembers("waitOnChildren/" + parentInstance.getId());
   }
 }

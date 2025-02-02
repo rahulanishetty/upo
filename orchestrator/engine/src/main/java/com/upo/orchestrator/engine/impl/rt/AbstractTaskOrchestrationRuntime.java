@@ -320,11 +320,15 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   }
 
   private void suspendRemainingChildren(ProcessInstance processInstance) {
+    List<String> remainingChildren = processInstance.getRemainingChildInstances();
+    suspendInstances(processInstance, remainingChildren);
+  }
+
+  protected void suspendInstances(ProcessInstance processInstance, Collection<String> instanceIds) {
     ExecutionLifecycleManager lifecycleManager =
         getService(processInstance, ExecutionLifecycleManager.class);
-    List<String> remainingChildren = processInstance.getRemainingChildInstances();
-    if (CollectionUtils.isNotEmpty(remainingChildren)) {
-      for (String childId : remainingChildren) {
+    if (CollectionUtils.isNotEmpty(instanceIds)) {
+      for (String childId : instanceIds) {
         lifecycleManager.signalProcess(processInstance, childId, ProcessFlowStatus.SUSPENDED);
       }
     }

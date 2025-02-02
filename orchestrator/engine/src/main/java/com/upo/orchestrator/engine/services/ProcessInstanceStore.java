@@ -9,6 +9,7 @@ package com.upo.orchestrator.engine.services;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 
 import com.upo.orchestrator.engine.ProcessFlowStatus;
 import com.upo.orchestrator.engine.models.ProcessInstance;
@@ -73,4 +74,30 @@ public interface ProcessInstanceStore {
    */
   void addWaitingOnInstanceIds(
       ProcessInstance parentInstance, Collection<String> waitOnInstanceIds);
+
+  /**
+   * Removes a completed process instance ID from the parent's waiting set and indicates if all
+   * child processes have completed. This is called when a child process completes execution and the
+   * parent no longer needs to wait for it.
+   *
+   * @param parentInstance The parent process instance that is waiting on child instances. This
+   *     instance maintains the set of child processes it depends on.
+   * @param completedInstanceId The ID of the child process instance that has completed execution.
+   * @return boolean True if this instance ID was removed from the waiting set, false if it was
+   *     already removed (preventing duplicate processing)
+   */
+  boolean removeCompletedInstanceId(ProcessInstance parentInstance, String completedInstanceId);
+
+  /**
+   * Returns the set of child process IDs that the parent is still waiting on. This provides the
+   * current set of incomplete child processes without modifying the waiting set.
+   *
+   * @param parentInstance The parent process instance that is waiting on child instances. This
+   *     instance maintains the set of child processes it depends on.
+   * @return Set<String> Set of process instance IDs that haven't completed yet. Empty set if all
+   *     children are complete.
+   *     <p>Note: The result is a point-in-time snapshot and may change if called again, especially
+   *     in concurrent scenarios.
+   */
+  Set<String> getRemainingChildren(ProcessInstance parentInstance);
 }

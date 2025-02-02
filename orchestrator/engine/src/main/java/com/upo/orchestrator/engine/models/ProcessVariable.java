@@ -11,6 +11,7 @@ import com.upo.orchestrator.engine.Variable;
 
 public class ProcessVariable implements Variable {
   private String id;
+  private String processInstanceId;
   private String taskId;
   private Variable.Type type;
   private Object payload;
@@ -21,6 +22,14 @@ public class ProcessVariable implements Variable {
 
   public void setId(String id) {
     this.id = id;
+  }
+
+  public String getProcessInstanceId() {
+    return processInstanceId;
+  }
+
+  public void setProcessInstanceId(String processInstanceId) {
+    this.processInstanceId = processInstanceId;
   }
 
   public String getTaskId() {
@@ -50,6 +59,7 @@ public class ProcessVariable implements Variable {
 
   public void initId(ProcessInstance processInstance) {
     setId(getId(processInstance, taskId, type));
+    setProcessInstanceId(processInstance.getId());
   }
 
   public static String getId(ProcessInstance processInstance, String taskId, Type type) {

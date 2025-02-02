@@ -139,4 +139,24 @@ public class CollectionUtils {
     }
     return value.toString();
   }
+
+  public static <T, K, V> Map<K, List<V>> groupByKey(
+      Collection<T> collection, Function<T, K> keyMapper, Function<T, V> valueMapper) {
+    if (CollectionUtils.isEmpty(collection)) {
+      return Collections.emptyMap();
+    }
+    Map<K, List<V>> result = new LinkedHashMap<>();
+    for (T t : collection) {
+      K key = keyMapper.apply(t);
+      if (key == null) {
+        continue;
+      }
+      V value = valueMapper.apply(t);
+      if (value == null) {
+        continue;
+      }
+      result.computeIfAbsent(key, _ -> new ArrayList<>()).add(value);
+    }
+    return result;
+  }
 }
