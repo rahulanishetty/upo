@@ -110,7 +110,7 @@ public class ForkTransitionsTaskRuntime extends AbstractTaskOrchestrationRuntime
   /** Creates callback data for starting forked instances and synchronization. */
   private static Map<String, Object> createCallbackData(List<ProcessInstance> concurrentInstances) {
     List<Map<String, Object>> instances = new ArrayList<>();
-    List<String> remainingInstanceIds = new ArrayList<>();
+    List<String> waitOnInstanceIds = new ArrayList<>();
     for (ProcessInstance concurrentInstance : concurrentInstances) {
       instances.add(
           Map.of(
@@ -118,9 +118,9 @@ public class ForkTransitionsTaskRuntime extends AbstractTaskOrchestrationRuntime
               concurrentInstance.getCurrTaskId(),
               INSTANCE_ID,
               concurrentInstance.getId()));
-      remainingInstanceIds.add(concurrentInstance.getId());
+      waitOnInstanceIds.add(concurrentInstance.getId());
     }
-    return Map.of(INSTANCES, instances, WAIT_ON_INSTANCE_IDS, remainingInstanceIds);
+    return Map.of(INSTANCES, instances, WAIT_ON_INSTANCE_IDS, waitOnInstanceIds);
   }
 
   /** Creates a child concurrent process instance. */
