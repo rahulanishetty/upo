@@ -12,6 +12,10 @@ import com.upo.orchestrator.engine.models.ProcessInstance;
 
 public interface ExecutionLifecycleManager {
 
+  void startProcess(String processDefinitionId, Object payload);
+
+  void startInstanceWithPayload(String instanceId, Object payload);
+
   void signalProcess(
       ProcessInstance processInstance,
       ProcessInstance targetInstance,

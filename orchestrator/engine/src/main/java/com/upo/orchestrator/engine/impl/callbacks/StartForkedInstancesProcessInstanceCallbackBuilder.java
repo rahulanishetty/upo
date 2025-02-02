@@ -5,7 +5,7 @@
 * For commercial licensing options, please contact the author.
 * For AGPL-3.0 licensing details, see the LICENSE file in the repository root.
 */
-package com.upo.orchestrator.engine.impl;
+package com.upo.orchestrator.engine.impl.callbacks;
 
 import java.util.Collection;
 import java.util.List;
@@ -24,7 +24,7 @@ import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 @Singleton
-public class StartForkedInstancesProcessInstanceCallbackBuilderImpl
+public class StartForkedInstancesProcessInstanceCallbackBuilder
     implements ProcessInstanceCallbackBuilder {
 
   public static final String TYPE = "START_FORKED_INSTANCES";
@@ -34,7 +34,7 @@ public class StartForkedInstancesProcessInstanceCallbackBuilderImpl
   public static final String WAIT_ON_INSTANCE_IDS = "waitOnInstanceIds";
 
   @Inject
-  public StartForkedInstancesProcessInstanceCallbackBuilderImpl(
+  public StartForkedInstancesProcessInstanceCallbackBuilder(
       ProcessInstanceCallbackFactory callbackFactory) {
     callbackFactory.register(this);
   }

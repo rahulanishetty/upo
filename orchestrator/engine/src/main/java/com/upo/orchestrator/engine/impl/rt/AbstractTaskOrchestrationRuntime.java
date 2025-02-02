@@ -496,11 +496,15 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return getServices(processInstance).getService(serviceClz);
   }
 
-  private Variable skippedInput() {
+  protected Variable toInput(Object payload) {
     ProcessVariable variable = new ProcessVariable();
     variable.setTaskId(taskId);
     variable.setType(Variable.Type.INPUT);
-    variable.setPayload(Map.of("skipped", "true"));
+    variable.setPayload(payload);
     return variable;
+  }
+
+  private Variable skippedInput() {
+    return toInput(Map.of("skipped", "true"));
   }
 }

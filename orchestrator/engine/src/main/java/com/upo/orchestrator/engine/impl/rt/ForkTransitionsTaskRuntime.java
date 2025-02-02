@@ -7,7 +7,7 @@
 */
 package com.upo.orchestrator.engine.impl.rt;
 
-import static com.upo.orchestrator.engine.impl.StartForkedInstancesProcessInstanceCallbackBuilderImpl.*;
+import static com.upo.orchestrator.engine.impl.callbacks.StartForkedInstancesProcessInstanceCallbackBuilder.*;
 
 import java.util.*;
 
@@ -121,7 +121,8 @@ public class ForkTransitionsTaskRuntime extends AbstractTaskOrchestrationRuntime
   /** Creates a child concurrent process instance. */
   private ProcessInstance createChildConcurrentInstance(
       ProcessInstance parentInstance, String startFromTaskId) {
-    ProcessInstance concurrentInstance = ProcessExecutorImpl.createChildInstance(parentInstance);
+    ProcessInstance concurrentInstance =
+        ProcessExecutorImpl.createChildInstance(parentInstance, parentInstance.toProcessDetails());
     concurrentInstance.setConcurrent(true);
     concurrentInstance.setTerminateAtTaskId(joinTaskId);
     concurrentInstance.setCurrTaskId(startFromTaskId);

@@ -140,6 +140,14 @@ public class CollectionUtils {
     return value.toString();
   }
 
+  public static <K, V> boolean getBooleanValue(Map<K, V> input, K key, boolean defaultValue) {
+    Object value = getValue(input, key);
+    if (value == null) {
+      return defaultValue;
+    }
+    return Boolean.parseBoolean(value.toString());
+  }
+
   public static <T, K, V> Map<K, List<V>> groupByKey(
       Collection<T> collection, Function<T, K> keyMapper, Function<T, V> valueMapper) {
     if (CollectionUtils.isEmpty(collection)) {

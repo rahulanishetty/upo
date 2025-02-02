@@ -10,6 +10,7 @@ package com.upo.orchestrator.engine.models;
 import java.util.List;
 
 import com.alibaba.fastjson2.annotation.JSONField;
+import com.upo.orchestrator.engine.ProcessDetails;
 import com.upo.orchestrator.engine.ProcessFlowStatus;
 import com.upo.orchestrator.engine.VariableContainer;
 
@@ -282,6 +283,25 @@ public class ProcessInstance {
   public long incrementTaskCount() {
     taskCount++;
     return taskCountSinceLastFlush++;
+  }
+
+  public ProcessDetails toProcessDetails() {
+    return new ProcessDetails() {
+      @Override
+      public String getId() {
+        return ProcessInstance.this.getProcessId();
+      }
+
+      @Override
+      public String getSnapshotId() {
+        return ProcessInstance.this.getProcessSnapshotId();
+      }
+
+      @Override
+      public String getSnapshotVersion() {
+        return ProcessInstance.this.getProcessVersion();
+      }
+    };
   }
 
   @Override

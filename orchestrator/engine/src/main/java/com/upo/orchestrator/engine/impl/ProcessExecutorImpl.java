@@ -164,7 +164,8 @@ public class ProcessExecutorImpl implements ProcessExecutor {
     return processInstance;
   }
 
-  public static ProcessInstance createChildInstance(ProcessInstance parentInstance) {
+  public static ProcessInstance createChildInstance(
+      ProcessInstance parentInstance, ProcessDetails processDetails) {
     ProcessInstance childInstance = new ProcessInstance();
     childInstance.setId(UlidUtils.createId());
     childInstance.setStartTime(System.currentTimeMillis());
@@ -174,9 +175,11 @@ public class ProcessExecutorImpl implements ProcessExecutor {
 
     childInstance.setRootId(ProcessUtils.getRootInstanceId(parentInstance));
     childInstance.setParentId(parentInstance.getId());
-    childInstance.setProcessId(parentInstance.getProcessId());
-    childInstance.setProcessSnapshotId(parentInstance.getProcessSnapshotId());
-    childInstance.setProcessVersion(parentInstance.getProcessVersion());
+
+    childInstance.setProcessId(processDetails.getId());
+    childInstance.setProcessSnapshotId(processDetails.getSnapshotId());
+    childInstance.setProcessVersion(processDetails.getSnapshotVersion());
+
     childInstance.setExecutionStrategy(parentInstance.getExecutionStrategy());
     childInstance.setProcessEnv(parentInstance.getProcessEnv().copy());
 
