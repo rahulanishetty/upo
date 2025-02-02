@@ -96,7 +96,9 @@ public class ForkTransitionsTaskRuntime extends AbstractTaskOrchestrationRuntime
     }
     ProcessInstanceStore processInstanceStore =
         getService(processInstance, ProcessInstanceStore.class);
-    processInstanceStore.saveMany(concurrentInstances);
+    if (!processInstanceStore.saveMany(concurrentInstances)) {
+      throw new IllegalStateException("failed to save concurrent instances!");
+    }
     return concurrentInstances;
   }
 
