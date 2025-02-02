@@ -63,32 +63,64 @@ public class ForkTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
 
   @Override
   protected TaskResult doExecute(ProcessInstance processInstance) {
-    List<Transition> transitions = Collections.emptyList();
-    if (nextTransitionsResolver != null) {
-      transitions = nextTransitionsResolver.resolveTransitions(this, processInstance, null);
+    List<Transition> matchingTransitions = findTransitionsToFork(processInstance);
+
+    Map<String, Object> processedInputs = evaluateInputs(processInstance);
+    boolean waitForChildren = !(boolean) processedInputs.getOrDefault("noWait", false);
+
+    List<Variable> variables = Collections.singletonList(toInput(processedInputs));
+
+    if (shouldExecuteSequentially(matchingTransitions, waitForChildren)) {
+      return TaskResult.ContinueWithTransitions.with(variables, matchingTransitions);
     }
 
-    List<Transition> matchingTransitions = findTransitionsToFork(processInstance, transitions);
-    if (matchingTransitions.size() <= 1) {
-     // Optimization: No need to fork for 0 or 1 transitions
-      return TaskResult.ContinueWithTransitions.with(Collections.emptyList(), matchingTransitions);
-    }
-
-    List<ProcessInstance> concurrentInstances =
+    List<ProcessInstance> forkedInstances =
         createAndSaveForkedInstances(processInstance, matchingTransitions);
 
-    if (joinTaskId != null) {
-      Map<String, Object> callbackData = createCallbackData(concurrentInstances);
-      return new TaskResult.Wait(Collections.emptyList(), TYPE, callbackData);
+    if (joinTaskId == null || !waitForChildren) {
+     // Asynchronous execution - start all instances and continue
+      startForkedInstances(processInstance, forkedInstances);
+      return TaskResult.Continue.with(variables);
     }
 
-    ExecutionLifecycleManager lifecycleManager =
-        getService(processInstance, ExecutionLifecycleManager.class);
-    for (ProcessInstance concurrentInstance : concurrentInstances) {
-      lifecycleManager.continueProcessFromTask(
-          concurrentInstance.getId(), concurrentInstance.getCurrTaskId());
+   // Synchronous execution with join point
+    Map<String, Object> callbackData = createCallbackData(forkedInstances);
+    return new TaskResult.Wait(variables, TYPE, callbackData);
+  }
+
+  /**
+   * Determines if execution should proceed sequentially instead of forking. Sequential execution is
+   * chosen when: 1. There's only 0 or 1 transition to execute, AND 2. A join point is specified,
+   * AND 3. We are waiting for child completions
+   *
+   * @param transitions The transitions to be executed
+   * @param waitForChildren Whether parent should wait for child completions
+   * @return true if execution should proceed sequentially, false if parallel execution is needed
+   */
+  private boolean shouldExecuteSequentially(List<Transition> transitions, boolean waitForChildren) {
+    return joinTaskId != null && transitions.size() <= 1 && waitForChildren;
+  }
+
+  private List<Transition> resolveTransitions(ProcessInstance processInstance) {
+    if (nextTransitionsResolver == null) {
+      return Collections.emptyList();
     }
-    return TaskResult.Continue.with(Collections.emptyList());
+    return nextTransitionsResolver.resolveTransitions(this, processInstance, null);
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> evaluateInputs(ProcessInstance processInstance) {
+    return (Map<String, Object>) inputs.evaluate(processInstance);
+  }
+
+  private void startForkedInstances(
+      ProcessInstance parentInstance, List<ProcessInstance> forkedInstances) {
+    ExecutionLifecycleManager lifecycleManager =
+        getService(parentInstance, ExecutionLifecycleManager.class);
+    for (ProcessInstance forkedInstance : forkedInstances) {
+      lifecycleManager.continueProcessFromTask(
+          forkedInstance.getId(), forkedInstance.getCurrTaskId());
+    }
   }
 
   /** Creates and persists forked process instances. */
@@ -135,12 +167,13 @@ public class ForkTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
   }
 
   /** Evaluates transitions to determine which paths should be forked. */
-  private static List<Transition> findTransitionsToFork(
-      ProcessInstance processInstance, List<Transition> transitions) {
+  private List<Transition> findTransitionsToFork(ProcessInstance processInstance) {
+    List<Transition> availableTransitions = resolveTransitions(processInstance);
+
     Transition defaultTransition = null;
     List<Transition> matchingTransitions = new ArrayList<>();
-    if (CollectionUtils.isNotEmpty(transitions)) {
-      for (Transition transition : transitions) {
+    if (CollectionUtils.isNotEmpty(availableTransitions)) {
+      for (Transition transition : availableTransitions) {
         if (transition.getType() == TransitionType.DEFAULT) {
           defaultTransition = transition;
         } else if (transition.getType() == TransitionType.CONDITIONAL) {
