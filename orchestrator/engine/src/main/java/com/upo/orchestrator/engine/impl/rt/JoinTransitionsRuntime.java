@@ -18,10 +18,10 @@ import com.upo.orchestrator.engine.services.ProcessInstanceStore;
 import com.upo.orchestrator.engine.services.VariableStore;
 import com.upo.utilities.ds.CollectionUtils;
 
-public class JoinTransitionsTaskRuntime extends AbstractTaskOrchestrationRuntime
+public class JoinTransitionsRuntime extends AbstractTaskOrchestrationRuntime
     implements ForkJoinRuntime {
 
-  public JoinTransitionsTaskRuntime(ProcessRuntime parent, String taskId) {
+  public JoinTransitionsRuntime(ProcessRuntime parent, String taskId) {
     super(parent, taskId);
   }
 

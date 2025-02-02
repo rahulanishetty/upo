@@ -22,9 +22,9 @@ import com.upo.orchestrator.engine.services.ProcessInstanceStore;
 import com.upo.orchestrator.engine.services.ProcessManager;
 import com.upo.utilities.ds.CollectionUtils;
 
-public class StartSubProcessTaskRuntime extends AbstractTaskOrchestrationRuntime {
+public class StartSubProcessRuntime extends AbstractTaskOrchestrationRuntime {
 
-  public StartSubProcessTaskRuntime(ProcessRuntime parent, String taskId) {
+  public StartSubProcessRuntime(ProcessRuntime parent, String taskId) {
     super(parent, taskId);
   }
 

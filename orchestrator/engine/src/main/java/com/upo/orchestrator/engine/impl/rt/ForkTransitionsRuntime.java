@@ -28,12 +28,12 @@ import com.upo.utilities.ds.CollectionUtils;
  * concurrent child instances for each matching transition 3. Sets up join synchronization if
  * configured 4. Persists forked instances 5. Sets up callback mechanism for join coordination
  */
-public class ForkTransitionsTaskRuntime extends AbstractTaskOrchestrationRuntime {
+public class ForkTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
 
   private String joinTaskId;
   private TransitionResolver nextTransitionsResolver;
 
-  public ForkTransitionsTaskRuntime(ProcessRuntime parent, String taskId) {
+  public ForkTransitionsRuntime(ProcessRuntime parent, String taskId) {
     super(parent, taskId);
     setOutgoingTransitions(
         (_, _, taskResult) -> {

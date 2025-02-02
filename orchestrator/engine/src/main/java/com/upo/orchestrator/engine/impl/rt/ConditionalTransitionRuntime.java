@@ -21,9 +21,9 @@ import com.upo.utilities.ds.CollectionUtils;
  * @see AbstractTaskOrchestrationRuntime
  * @see ProcessRuntime
  */
-public class ConditionalTransitionTaskRuntime extends AbstractTaskOrchestrationRuntime {
+public class ConditionalTransitionRuntime extends AbstractTaskOrchestrationRuntime {
 
-  public ConditionalTransitionTaskRuntime(ProcessRuntime parent, String taskId) {
+  public ConditionalTransitionRuntime(ProcessRuntime parent, String taskId) {
     super(parent, taskId);
   }
 
