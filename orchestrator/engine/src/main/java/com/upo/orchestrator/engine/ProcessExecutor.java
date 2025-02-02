@@ -31,6 +31,20 @@ public interface ProcessExecutor {
   String start(Map<String, Object> payload);
 
   /**
+   * Starts a new process execution with a specified instance ID and initial payload. This method: -
+   * Initializes process state with payload - Begins execution from the start task
+   *
+   * <p>Process execution continues until: - Process completes - A task transitions to WAIT status -
+   * An error occurs
+   *
+   * @param instanceId Unique identifier for the new process instance
+   * @param payload Initial data to populate process variables. Can be null if no initial data is
+   *     needed.
+   * @throws IllegalArgumentException if instanceId is null/empty or payload validation fails
+   */
+  void start(String instanceId, Map<String, Object> payload);
+
+  /**
    * Handles a signal received during process execution. Signals are forwarded to the appropriate
    * task based on current process state. Signal handling can: - Resume waiting tasks - Update
    * process state

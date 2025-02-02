@@ -55,11 +55,14 @@ public class ProcessExecutorImpl implements ProcessExecutor {
     if (processInstance == null) {
       throw new IllegalStateException("failed to create process instance");
     }
-    executeTaskSequence(
-        processInstance,
-        processRuntime.getDefinition().getStartTaskId(),
-        (task) -> task.execute(processInstance));
+    startInternal(processInstance, payload);
     return processInstance.getId();
+  }
+
+  @Override
+  public void start(String instanceId, Map<String, Object> payload) {
+    ProcessInstance processInstance = findProcessInstance(instanceId);
+    startInternal(processInstance, payload);
   }
 
   @Override
@@ -71,6 +74,25 @@ public class ProcessExecutorImpl implements ProcessExecutor {
         processInstance,
         processInstance.getCurrTaskId(),
         (taskRuntime) -> taskRuntime.handleSignal(processInstance, status, payload));
+  }
+
+  private void startInternal(ProcessInstance processInstance, Map<String, Object> payload) {
+    processInstance.setInput(payload);
+    executeTaskSequence(
+        processInstance,
+        processRuntime.getDefinition().getStartTaskId(),
+        (task) -> task.execute(processInstance));
+  }
+
+  private ProcessInstance findProcessInstance(String instanceId) {
+    ProcessInstanceStore instanceStore = processServices.getService(ProcessInstanceStore.class);
+    ProcessInstance processInstance =
+        instanceStore
+            .findById(instanceId)
+            .orElseThrow(() -> new IllegalStateException("failed to create process instance"));
+    processInstance.getProcessEnv().setProcessServices(getServices());
+    processInstance.setVariableContainer(new VariableContainerImpl());
+    return processInstance;
   }
 
   private ProcessInstance lookupProcessInstance(

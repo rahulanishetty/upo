@@ -91,6 +91,10 @@ public class ProcessInstance {
   @JSONField(serialize = false, deserialize = false)
   private VariableContainer variableContainer;
 
+  /** input passed for this instance */
+  @JSONField(serialize = false, deserialize = false)
+  private Object input;
+
   public String getId() {
     return id;
   }
@@ -270,6 +274,14 @@ public class ProcessInstance {
   public long incrementTaskCount() {
     taskCount++;
     return taskCountSinceLastFlush++;
+  }
+
+  public Object getInput() {
+    return input;
+  }
+
+  public void setInput(Object input) {
+    this.input = input;
   }
 
   public ProcessDetails toProcessDetails() {
