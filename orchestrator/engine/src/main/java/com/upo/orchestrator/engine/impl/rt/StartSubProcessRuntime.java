@@ -45,7 +45,8 @@ public class StartSubProcessRuntime extends AbstractTaskOrchestrationRuntime {
 
     ProcessInstance childInstance = createAndSaveChildProcessInstance(processInstance, processId);
     Map<String, Object> callbackData = createCallbackData(childInstance, payload);
-    return new TaskResult.Wait(Collections.singletonList(toInput(processed)), TYPE, callbackData);
+    return new TaskResult.Wait(
+        Collections.singletonList(toInputVariable(processed)), TYPE, callbackData);
   }
 
   private static Map<String, Object> createCallbackData(
@@ -77,6 +78,6 @@ public class StartSubProcessRuntime extends AbstractTaskOrchestrationRuntime {
     String processId = CollectionUtils.getStringValue(processed, "processId");
     Object payload = CollectionUtils.getValue(processed, "payload");
     lifecycleManager.startProcess(processId, payload);
-    return TaskResult.Continue.with(Collections.singletonList(toInput(processed)));
+    return TaskResult.Continue.with(Collections.singletonList(toInputVariable(processed)));
   }
 }

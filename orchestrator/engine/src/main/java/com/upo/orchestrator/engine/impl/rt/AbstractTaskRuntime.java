@@ -72,7 +72,9 @@ public abstract class AbstractTaskRuntime implements TaskRuntime {
     processVariable.setPayload(payload);
     processVariable.setTaskId(taskId);
     processVariable.setType(type);
-    processVariable.initId(processInstance);
+    if (processInstance != null) {
+      processVariable.initId(processInstance);
+    }
     return processVariable;
   }
 

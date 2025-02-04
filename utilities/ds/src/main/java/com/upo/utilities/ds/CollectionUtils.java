@@ -168,10 +168,17 @@ public class CollectionUtils {
     return result;
   }
 
-  public static <V> Set<V> nullSafeMutableSet(Set<V> set) {
+  public static <V> Set<V> nullSafeMutableSet(Collection<V> set) {
     if (isEmpty(set)) {
       return Collections.emptySet();
     }
     return new LinkedHashSet<>(set);
+  }
+
+  public static <V> List<V> nullSafeMutableList(Collection<V> list) {
+    if (isEmpty(list)) {
+      return new ArrayList<>();
+    }
+    return new ArrayList<>(list);
   }
 }

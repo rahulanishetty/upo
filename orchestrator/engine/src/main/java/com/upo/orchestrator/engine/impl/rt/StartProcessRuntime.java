@@ -22,6 +22,6 @@ public class StartProcessRuntime extends AbstractTaskOrchestrationRuntime {
   @Override
   protected TaskResult doExecute(ProcessInstance processInstance) {
     return TaskResult.Continue.with(
-        Collections.singletonList(toOutput(processInstance.getInput())));
+        Collections.singletonList(toOutputVariable(processInstance.getInput())));
   }
 }

@@ -65,7 +65,7 @@ public class ForkTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
     boolean waitForChildren =
         joinTaskId != null && !(boolean) processedInputs.getOrDefault("noWait", false);
 
-    List<Variable> variables = Collections.singletonList(toInput(processedInputs));
+    List<Variable> variables = Collections.singletonList(toInputVariable(processedInputs));
 
     if (shouldExecuteSequentially(matchingTransitions, waitForChildren)) {
       return TaskResult.ContinueWithTransitions.with(variables, matchingTransitions);

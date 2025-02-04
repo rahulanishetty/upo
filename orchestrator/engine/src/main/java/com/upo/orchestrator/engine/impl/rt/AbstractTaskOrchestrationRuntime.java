@@ -119,19 +119,20 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return switch (signal) {
       case Signal.Resume resume -> {
         TaskResult taskResult =
-            TaskResult.Continue.with(Collections.singletonList(toOutput(resume.getCallbackData())));
+            TaskResult.Continue.with(
+                Collections.singletonList(toOutputVariable(resume.getCallbackData())));
         yield resolveProcessFlow(processInstance, taskResult);
       }
       case Signal.Stop stop -> {
         if (stop.getFlowStatus() == ProcessFlowStatus.FAILED) {
           TaskResult taskResult =
               TaskResult.Fail.with(
-                  Collections.singletonList(
-                      toVariable(processInstance, Variable.Type.ERROR, stop.getCallbackData())));
+                  Collections.singletonList(toErrorVariable(stop.getCallbackData())));
           yield resolveProcessFlow(processInstance, taskResult);
         } else if (stop.getFlowStatus() == ProcessFlowStatus.SUSPENDED) {
           TaskResult taskResult =
-              TaskResult.Continue.with(Collections.singletonList(toOutput(stop.getCallbackData())));
+              TaskResult.Continue.with(
+                  Collections.singletonList(toOutputVariable(stop.getCallbackData())));
           yield new ProcessFlowResult(
               taskResult, ProcessFlowStatus.SUSPENDED, Collections.emptyList());
         } else {
@@ -141,13 +142,14 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       case Signal.Return ret -> {
         TaskResult taskResult =
             TaskResult.ReturnResult.with(
-                ret.getReturnValue(), Collections.singletonList(toOutput(ret.getReturnValue())));
+                ret.getReturnValue(),
+                Collections.singletonList(toOutputVariable(ret.getReturnValue())));
         yield resolveProcessFlow(processInstance, taskResult);
       }
     };
   }
 
-  private List<Transition> resolveTransitions(
+  protected List<Transition> resolveTransitions(
       ProcessInstance processInstance, TaskResult taskResult) {
     if (outgoingTransitions == null || taskResult instanceof TaskResult.ReturnResult) {
       return Collections.emptyList();
@@ -244,11 +246,19 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return defaultTransition;
   }
 
-  private static CompositeVariableView createTemporaryScopeWithTaskResults(
+  private static VariableContainer createTemporaryScopeWithTaskResults(
       TaskResult taskResult, VariableContainer original) {
+    return createTemporaryScopeWithVariables(original, taskResult.getVariables());
+  }
+
+  protected static VariableContainer createTemporaryScopeWithVariables(
+      VariableContainer original, Collection<Variable> variables) {
+    if (CollectionUtils.isEmpty(variables)) {
+      return original;
+    }
     CompositeVariableView view = new CompositeVariableView();
     ImmutableVariableContainer tempContainer = new ImmutableVariableContainer();
-    for (Variable variable : taskResult.getVariables()) {
+    for (Variable variable : variables) {
       tempContainer.restoreVariable(
           variable.getTaskId(), variable.getType(), variable.getPayload());
     }
@@ -586,23 +596,27 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     return getServices(processInstance).getService(serviceClz);
   }
 
-  protected Variable toInput(Object payload) {
-    ProcessVariable variable = new ProcessVariable();
-    variable.setTaskId(taskId);
-    variable.setType(Variable.Type.INPUT);
-    variable.setPayload(payload);
-    return variable;
+  protected Variable toStateVariable(Object payload) {
+    return toVariable(null, Variable.Type.STATE, payload);
   }
 
-  protected Variable toOutput(Object payload) {
-    ProcessVariable variable = new ProcessVariable();
-    variable.setTaskId(taskId);
-    variable.setType(Variable.Type.OUTPUT);
-    variable.setPayload(payload);
-    return variable;
+  protected Variable toInputVariable(Object payload) {
+    return toVariable(null, Variable.Type.INPUT, payload);
+  }
+
+  protected Variable toOutputVariable(Object payload) {
+    return toVariable(null, Variable.Type.OUTPUT, payload);
+  }
+
+  protected Variable toTransientVariable(Object payload) {
+    return toVariable(null, Variable.Type.TRANSIENT, payload);
+  }
+
+  protected Variable toErrorVariable(Object payload) {
+    return toVariable(null, Variable.Type.ERROR, payload);
   }
 
   private Variable skippedInput() {
-    return toInput(Map.of("skipped", "true"));
+    return toInputVariable(Map.of("skipped", "true"));
   }
 }

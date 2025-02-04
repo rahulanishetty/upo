@@ -29,7 +29,7 @@ public class StopProcessRuntime extends AbstractTaskOrchestrationRuntime {
     if (inputs != null) {
       Object returnValue = inputs.evaluate(processInstance);
       return TaskResult.ReturnResult.with(
-          returnValue, Collections.singletonList(toOutput(returnValue)));
+          returnValue, Collections.singletonList(toOutputVariable(returnValue)));
     }
     return TaskResult.Continue.with(Collections.emptyList());
   }
