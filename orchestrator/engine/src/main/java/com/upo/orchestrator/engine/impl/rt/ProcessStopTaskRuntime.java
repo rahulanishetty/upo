@@ -12,9 +12,9 @@ import java.util.Collections;
 import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
-public class StopProcessRuntime extends AbstractTaskOrchestrationRuntime {
+public class ProcessStopTaskRuntime extends AbstractTaskOrchestrationRuntime {
 
-  public StopProcessRuntime(ProcessRuntime parent, String taskId) {
+  public ProcessStopTaskRuntime(ProcessRuntime parent, String taskId) {
     super(parent, taskId);
     super.setOutgoingTransitions((_, _, _) -> Collections.emptyList());
   }

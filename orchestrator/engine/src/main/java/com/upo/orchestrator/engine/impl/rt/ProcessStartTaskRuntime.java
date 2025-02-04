@@ -13,9 +13,9 @@ import com.upo.orchestrator.engine.ProcessRuntime;
 import com.upo.orchestrator.engine.TaskResult;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
-public class StartProcessRuntime extends AbstractTaskOrchestrationRuntime {
+public class ProcessStartTaskRuntime extends AbstractTaskOrchestrationRuntime {
 
-  public StartProcessRuntime(ProcessRuntime parent, String taskId) {
+  public ProcessStartTaskRuntime(ProcessRuntime parent, String taskId) {
     super(parent, taskId);
   }
 
