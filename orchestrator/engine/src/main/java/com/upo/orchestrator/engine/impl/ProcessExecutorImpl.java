@@ -89,8 +89,9 @@ public class ProcessExecutorImpl implements ProcessExecutor {
         instanceStore
             .findById(instanceId)
             .orElseThrow(() -> new IllegalStateException("failed to create process instance"));
-    processInstance.getProcessEnv().setProcessServices(getServices());
-    processInstance.setVariableContainer(new VariableContainerImpl());
+    ProcessEnv processEnv = processInstance.getProcessEnv();
+    processEnv.setProcessServices(getServices());
+    processInstance.setVariableContainer(createVariableContainer(processEnv));
     return processInstance;
   }
 
@@ -192,7 +193,6 @@ public class ProcessExecutorImpl implements ProcessExecutor {
     childInstance.setStartTime(System.currentTimeMillis());
     childInstance.setTaskCount(0L);
     childInstance.setStatus(ProcessFlowStatus.CONTINUE);
-    childInstance.setVariableContainer(new VariableContainerImpl());
 
     childInstance.setRootId(ProcessUtils.getRootInstanceId(parentInstance));
     childInstance.setParentId(parentInstance.getId());
@@ -202,7 +202,10 @@ public class ProcessExecutorImpl implements ProcessExecutor {
     childInstance.setProcessVersion(processDetails.getSnapshotVersion());
 
     childInstance.setExecutionStrategy(parentInstance.getExecutionStrategy());
-    childInstance.setProcessEnv(parentInstance.getProcessEnv().copy());
+    ProcessEnv childProcessEnv = parentInstance.getProcessEnv().copy();
+    childInstance.setProcessEnv(childProcessEnv);
+
+    childInstance.setVariableContainer(createVariableContainer(childProcessEnv));
 
     return childInstance;
   }
@@ -215,7 +218,7 @@ public class ProcessExecutorImpl implements ProcessExecutor {
    * @param processEnv process environment containing initial variables
    * @return initialized Variables instance with process environment data
    */
-  private VariableContainer createVariableContainer(ProcessEnv processEnv) {
+  public static VariableContainer createVariableContainer(ProcessEnv processEnv) {
     VariableContainerImpl variables = new VariableContainerImpl();
     variables.addProcessEnvVariables(processEnv);
     return variables;

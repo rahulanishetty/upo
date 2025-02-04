@@ -7,6 +7,7 @@
 */
 package com.upo.orchestrator.engine.impl;
 
+import java.io.Closeable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -15,6 +16,7 @@ import java.util.Map;
 import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.VariableContainer;
 import com.upo.orchestrator.engine.models.ProcessVariable;
+import com.upo.utilities.ds.IOUtils;
 import com.upo.utilities.json.path.JsonPath;
 
 /**
@@ -115,5 +117,18 @@ public class ImmutableVariableContainer implements VariableContainer {
   @Override
   public Object readVariable(JsonPath jsonPath) {
     return jsonPath.read(variables);
+  }
+
+  @Override
+  public void closeTransientVariables() {
+    for (Map.Entry<String, Object> entry : variables.entrySet()) {
+      Object value = entry.getValue();
+      if (value instanceof Map<?, ?> map) {
+        Object o = map.remove(Variable.Type.TRANSIENT.getKey());
+        if (o instanceof Closeable closeable) {
+          IOUtils.closeQuietly(closeable);
+        }
+      }
+    }
   }
 }

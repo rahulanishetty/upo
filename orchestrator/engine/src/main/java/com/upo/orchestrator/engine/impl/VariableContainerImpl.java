@@ -7,6 +7,7 @@
 */
 package com.upo.orchestrator.engine.impl;
 
+import java.io.Closeable;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -16,6 +17,7 @@ import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.VariableContainer;
 import com.upo.orchestrator.engine.models.ProcessEnv;
 import com.upo.orchestrator.engine.models.ProcessVariable;
+import com.upo.utilities.ds.IOUtils;
 import com.upo.utilities.ds.Pair;
 import com.upo.utilities.json.path.JsonPath;
 
@@ -24,10 +26,12 @@ public class VariableContainerImpl implements VariableContainer {
   private static final Set<String> RESERVED_KEYS = Set.of("env", "ctx", "session");
 
   private final Map<String, Map<String, Object>> variables;
+  private final Map<Pair<String, Variable.Type>, Object> trasients;
   private final Map<Pair<String, Variable.Type>, Object> newVariables;
 
   public VariableContainerImpl() {
     this.variables = new HashMap<>();
+    this.trasients = new HashMap<>();
     this.newVariables = new HashMap<>();
   }
 
@@ -58,7 +62,11 @@ public class VariableContainerImpl implements VariableContainer {
   @Override
   public void addNewVariable(String taskId, Variable.Type type, Object payload) {
     payload = restoreVariableInternal(taskId, type, payload);
-    newVariables.put(Pair.of(taskId, type), payload);
+    if (type != Variable.Type.TRANSIENT) {
+      newVariables.put(Pair.of(taskId, type), payload);
+    } else {
+      trasients.put(Pair.of(taskId, type), payload);
+    }
   }
 
   @Override
@@ -110,6 +118,21 @@ public class VariableContainerImpl implements VariableContainer {
       }
     }
     return jsonPath.read(variables);
+  }
+
+  @Override
+  public void closeTransientVariables() {
+    for (Map.Entry<Pair<String, Variable.Type>, Object> entry : trasients.entrySet()) {
+      Object value = entry.getValue();
+      if (value instanceof Closeable closeable) {
+        IOUtils.closeQuietly(closeable);
+      }
+      Map<String, Object> payload = variables.get(entry.getKey().getFirstElement());
+      if (payload != null) {
+        payload.remove(entry.getKey().getSecondElement().getKey());
+      }
+    }
+    trasients.clear();
   }
 
   private Object restoreVariableInternal(String taskId, Variable.Type type, Object payload) {

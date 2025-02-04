@@ -112,4 +112,11 @@ public class CompositeVariableView implements VariableContainer {
     }
     return null;
   }
+
+  @Override
+  public void closeTransientVariables() {
+    for (VariableContainer container : containers) {
+      container.closeTransientVariables();
+    }
+  }
 }

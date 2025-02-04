@@ -55,6 +55,13 @@ public interface VariableContainer {
   void clearNewVariables();
 
   /**
+   * Closes and removes transient variables if they implement AutoCloseable. This method should be
+   * called during task completion to cleanup any temporary resources. Only TRANSIENT_STATE
+   * variables are affected; other variable types are preserved.
+   */
+  void closeTransientVariables();
+
+  /**
    * Retrieves variable data for a specific task and type.
    *
    * @param taskId identifier of the task

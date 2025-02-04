@@ -568,6 +568,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     }
     variableStore.saveMany(newVariables);
     variableContainer.clearNewVariables();
+    variableContainer.closeTransientVariables();
   }
 
   protected boolean saveProcessInstance(

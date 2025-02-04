@@ -37,7 +37,13 @@ public interface Variable {
      * State changes during task execution. Represents intermediate state or metadata produced
      * during task processing.
      */
-    STATE("state");
+    STATE("state"),
+    /**
+     * Temporary that exists only during task execution. Unlike regular variables, transient is not
+     * persisted. Used for passing ephemeral data between task phases or storing temporary
+     * computation results.
+     */
+    TRANSIENT("transient");
 
     private static final Map<String, Type> KEY_VS_TYPE_MAP = new HashMap<>();
 
