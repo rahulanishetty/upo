@@ -7,9 +7,7 @@
 */
 package com.upo.orchestrator.engine.impl.rt;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.models.ProcessInstance;
@@ -28,12 +26,11 @@ public class StopProcessRuntime extends AbstractTaskOrchestrationRuntime {
 
   @Override
   protected TaskResult doExecute(ProcessInstance processInstance) {
-    List<Variable> variables = new ArrayList<>();
-    Object returnValue = null;
     if (inputs != null) {
-      returnValue = inputs.evaluate(processInstance);
-      variables.add(toOutput(returnValue));
+      Object returnValue = inputs.evaluate(processInstance);
+      return TaskResult.ReturnResult.with(
+          returnValue, Collections.singletonList(toOutput(returnValue)));
     }
-    return TaskResult.ReturnResult.with(returnValue, variables);
+    return TaskResult.Continue.with(Collections.emptyList());
   }
 }
