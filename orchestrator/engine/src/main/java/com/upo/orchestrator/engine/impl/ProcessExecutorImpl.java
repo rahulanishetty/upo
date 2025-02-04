@@ -66,14 +66,13 @@ public class ProcessExecutorImpl implements ProcessExecutor {
   }
 
   @Override
-  public void signal(
-      String processInstanceId, TaskResult.Status status, Map<String, Object> payload) {
+  public void signal(String processInstanceId, Signal signal) {
     ProcessInstanceStore instanceStore = processServices.getService(ProcessInstanceStore.class);
     ProcessInstance processInstance = lookupProcessInstance(processInstanceId, instanceStore);
     executeTaskSequence(
         processInstance,
         processInstance.getCurrTaskId(),
-        (taskRuntime) -> taskRuntime.handleSignal(processInstance, status, payload));
+        (taskRuntime) -> taskRuntime.handleSignal(processInstance, signal));
   }
 
   private void startInternal(ProcessInstance processInstance, Map<String, Object> payload) {

@@ -7,7 +7,8 @@
 */
 package com.upo.orchestrator.engine.services;
 
-import com.upo.orchestrator.engine.ProcessFlowStatus;
+import com.upo.orchestrator.engine.ProcessOutcome;
+import com.upo.orchestrator.engine.Signal;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
 public interface ExecutionLifecycleManager {
@@ -17,15 +18,13 @@ public interface ExecutionLifecycleManager {
   void startInstanceWithPayload(String instanceId, Object payload);
 
   void signalProcess(
-      ProcessInstance processInstance,
-      ProcessInstance targetInstance,
-      ProcessFlowStatus flowStatus,
-      Object payload);
+      ProcessInstance processInstance, ProcessInstance targetInstance, Signal signal);
 
-  void signalProcess(
-      ProcessInstance processInstance, String targetInstanceId, ProcessFlowStatus flowStatus);
+  void signalProcess(ProcessInstance processInstance, String targetInstanceId, Signal signal);
 
   void continueProcessFromTask(String processInstanceId, String taskId);
 
   void cleanup(ProcessInstance processInstance);
+
+  void notifyCompletion(ProcessInstance processInstance, ProcessOutcome processOutcome);
 }

@@ -27,7 +27,8 @@ public class JoinTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
   public void join(
       ProcessInstance concurrentInstance,
       ProcessInstance parentInstance,
-      ProcessFlowStatus flowStatus) {
+      ProcessFlowStatus flowStatus,
+      TaskResult taskResult) {
     ProcessInstanceStore processInstanceStore =
         getService(concurrentInstance, ProcessInstanceStore.class);
     if (!processInstanceStore.removeCompletedInstanceId(
@@ -45,13 +46,19 @@ public class JoinTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
    // Signal parent if:
    // 1. No remaining children, OR
    // 2. Non-successful completion with remaining children (need to suspend them)
-    if (CollectionUtils.isEmpty(remainingChildren) || flowStatus != ProcessFlowStatus.COMPLETED) {
+   // 3. Branch is returning a result.
+    if (CollectionUtils.isEmpty(remainingChildren)
+        || flowStatus != ProcessFlowStatus.COMPLETED
+        || taskResult instanceof TaskResult.ReturnResult) {
       if (CollectionUtils.isNotEmpty(remainingChildren)) {
         suspendInstances(parentInstance, remainingChildren);
       }
       ExecutionLifecycleManager lifecycleManager =
           getService(concurrentInstance, ExecutionLifecycleManager.class);
-      lifecycleManager.signalProcess(concurrentInstance, parentInstance, flowStatus, null);
+      lifecycleManager.signalProcess(
+          concurrentInstance,
+          parentInstance,
+          createParentSignal(flowStatus, taskResult, concurrentInstance));
     }
   }
 
@@ -72,5 +79,35 @@ public class JoinTransitionsRuntime extends AbstractTaskOrchestrationRuntime {
       }
       flushNewVariablesIfAny(parentInstance);
     }
+  }
+
+  /**
+   * Converts concurrent instance completion status to appropriate parent signal. This method is
+   * used during fork-join processing to determine how to signal the parent process when a
+   * concurrent (child) instance completes.
+   *
+   * <p>Signal mapping: - Return result -> Return signal with value (early termination) - Completed
+   * -> Resume signal (normal completion) - Failed -> Stop signal with failed status - Suspended ->
+   * Stop signal with suspended status
+   *
+   * @param flowStatus The completion status of the concurrent instance
+   * @param taskResult The task result from concurrent instance completion
+   * @param childInstance the child instance creating this signal
+   * @return Signal appropriate signal for parent process
+   * @throws IllegalStateException if flow status is invalid
+   */
+  private Signal createParentSignal(
+      ProcessFlowStatus flowStatus, TaskResult taskResult, ProcessInstance childInstance) {
+    if (taskResult instanceof TaskResult.ReturnResult returnResult) {
+      return Signal.Return.with(returnResult.getReturnValue());
+    }
+    return switch (flowStatus) {
+      case COMPLETED -> Signal.Resume.with(null);
+      case FAILED ->
+          Signal.Stop.failed(
+              extractExecutionResult(ProcessFlowStatus.FAILED, taskResult, childInstance));
+      case SUSPENDED -> Signal.Stop.suspended();
+      default -> throw new IllegalStateException("invalid flow status: " + flowStatus);
+    };
   }
 }

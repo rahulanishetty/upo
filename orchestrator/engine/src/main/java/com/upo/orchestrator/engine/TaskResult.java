@@ -25,7 +25,7 @@ public abstract sealed class TaskResult {
     /** Wait for signal */
     WAIT,
     /** Task execution failed with error. */
-    ERROR;
+    FAIL;
   }
 
   private Status status;
@@ -97,14 +97,39 @@ public abstract sealed class TaskResult {
     }
   }
 
-  public static final class Error extends TaskResult {
-    private Error(Collection<Variable> variables) {
-      super(Status.ERROR);
+  public static final class Fail extends TaskResult {
+    private Fail(Collection<Variable> variables) {
+      super(Status.FAIL);
       setVariables(variables);
     }
 
-    public static Error with(Collection<Variable> variables) {
-      return new Error(variables);
+    public static Fail with(Collection<Variable> variables) {
+      return new Fail(variables);
+    }
+  }
+
+  /**
+   * Represents a task result that includes a return value, signaling process termination. This
+   * result type is used by special tasks that can terminate process execution with a value.
+   * Although it uses Status.CONTINUE, the presence of a return value indicates early termination.
+   *
+   * <p>The task result carries: - A return value of any type that will be propagated to the process
+   * caller - Variables produced during task execution
+   */
+  public static final class ReturnResult extends Continue {
+    private final Object returnValue;
+
+    public ReturnResult(Object value, Collection<Variable> variables) {
+      super(variables);
+      this.returnValue = value;
+    }
+
+    public Object getReturnValue() {
+      return returnValue;
+    }
+
+    public static ReturnResult with(Object value, Collection<Variable> variables) {
+      return new ReturnResult(value, variables);
     }
   }
 

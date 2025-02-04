@@ -50,10 +50,9 @@ public interface ProcessExecutor {
    * process state
    *
    * @param processInstanceId identifier of the target process instance
-   * @param status status of the task
-   * @param payload additional data for signal processing
+   * @param signal signal information
    * @throws IllegalArgumentException if process instance not found or signal/payload is invalid
    * @throws IllegalStateException if process instance is not in a state to handle signals
    */
-  void signal(String processInstanceId, TaskResult.Status status, Map<String, Object> payload);
+  void signal(String processInstanceId, Signal signal);
 }

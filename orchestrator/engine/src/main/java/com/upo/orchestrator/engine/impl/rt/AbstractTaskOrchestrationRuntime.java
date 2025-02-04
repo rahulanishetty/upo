@@ -51,10 +51,8 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   }
 
   @Override
-  public Next handleSignal(
-      ProcessInstance processInstance, TaskResult.Status status, Map<String, Object> payload) {
-    ProcessFlowResult processFlowResult =
-        resolveProcessFlow(processInstance, ProcessUtils.toTaskResult(status, taskId, payload));
+  public Next handleSignal(ProcessInstance processInstance, Signal signal) {
+    ProcessFlowResult processFlowResult = resolveProcessFlow(processInstance, signal);
     applyResultOnProcessInstance(processInstance, processFlowResult);
     if (!saveProcessInstance(processInstance, ProcessFlowStatus.WAIT)) {
       LOGGER.error("process is expected to be in WAIT state");
@@ -108,14 +106,53 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       return new ProcessFlowResult(taskResult, ProcessFlowStatus.WAIT, Collections.emptyList());
     }
    // Resolve all possible transitions
-    List<Transition> availableTransitions =
-        outgoingTransitions.resolveTransitions(this, processInstance, taskResult);
+    List<Transition> availableTransitions = resolveTransitions(processInstance, taskResult);
    // Find the appropriate transition to follow
     Optional<Transition> matchingTransition =
         findMatchingTransition(processInstance, taskResult, availableTransitions);
    // Determine flow status based on matching transition and task result
     ProcessFlowStatus flowStatus = determineFlowStatus(matchingTransition.isPresent(), taskResult);
     return new ProcessFlowResult(taskResult, flowStatus, availableTransitions);
+  }
+
+  private ProcessFlowResult resolveProcessFlow(ProcessInstance processInstance, Signal signal) {
+    return switch (signal) {
+      case Signal.Resume resume -> {
+        TaskResult taskResult =
+            TaskResult.Continue.with(Collections.singletonList(toOutput(resume.getCallbackData())));
+        yield resolveProcessFlow(processInstance, taskResult);
+      }
+      case Signal.Stop stop -> {
+        if (stop.getFlowStatus() == ProcessFlowStatus.FAILED) {
+          TaskResult taskResult =
+              TaskResult.Fail.with(
+                  Collections.singletonList(
+                      toVariable(processInstance, Variable.Type.ERROR, stop.getCallbackData())));
+          yield resolveProcessFlow(processInstance, taskResult);
+        } else if (stop.getFlowStatus() == ProcessFlowStatus.SUSPENDED) {
+          TaskResult taskResult =
+              TaskResult.Continue.with(Collections.singletonList(toOutput(stop.getCallbackData())));
+          yield new ProcessFlowResult(
+              taskResult, ProcessFlowStatus.SUSPENDED, Collections.emptyList());
+        } else {
+          throw new IllegalStateException("Unsupported flow status: " + stop.getFlowStatus());
+        }
+      }
+      case Signal.Return ret -> {
+        TaskResult taskResult =
+            TaskResult.ReturnResult.with(
+                ret.getReturnValue(), Collections.singletonList(toOutput(ret.getReturnValue())));
+        yield resolveProcessFlow(processInstance, taskResult);
+      }
+    };
+  }
+
+  private List<Transition> resolveTransitions(
+      ProcessInstance processInstance, TaskResult taskResult) {
+    if (outgoingTransitions == null || taskResult instanceof TaskResult.ReturnResult) {
+      return Collections.emptyList();
+    }
+    return outgoingTransitions.resolveTransitions(this, processInstance, taskResult);
   }
 
   /**
@@ -132,7 +169,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     if (hasMatchingTransition) {
       return ProcessFlowStatus.CONTINUE;
     }
-    return taskResult.getStatus() == TaskResult.Status.ERROR
+    return taskResult.getStatus() == TaskResult.Status.FAIL
         ? ProcessFlowStatus.FAILED
         : ProcessFlowStatus.COMPLETED;
   }
@@ -193,7 +230,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
         } else if (transition.getType() == TransitionType.CONDITIONAL) {
           transitionToEvaluate = transition;
         }
-      } else if (taskResult.getStatus() == TaskResult.Status.ERROR
+      } else if (taskResult.getStatus() == TaskResult.Status.FAIL
           && transition.getType() == TransitionType.ERROR) {
         transitionToEvaluate = transition;
       }
@@ -232,12 +269,12 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
 
   protected TaskResult toError(ProcessInstance processInstance, Throwable throwable) {
     if (throwable instanceof TaskExecutionException taskExecutionException) {
-      return TaskResult.Error.with(taskExecutionException.getVariables());
+      return TaskResult.Fail.with(taskExecutionException.getVariables());
     } else {
       Map<String, Object> payload = new HashMap<>(toErrorDetails(throwable));
       payload.put("rootCause", toErrorDetails(ExceptionUtils.getRootCause(throwable)));
       ProcessVariable processVariable = toVariable(processInstance, Variable.Type.ERROR, payload);
-      return TaskResult.Error.with(List.of(processVariable));
+      return TaskResult.Fail.with(List.of(processVariable));
     }
   }
 
@@ -266,7 +303,10 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       return Optional.of(Next.EMPTY);
     }
     if (Objects.equals(taskId, processInstance.getTerminateAtTaskId())) {
-      handleInstanceCompletion(processInstance, ProcessFlowStatus.COMPLETED);
+      handleInstanceCompletion(
+          processInstance,
+          ProcessFlowStatus.COMPLETED,
+          TaskResult.Continue.with(Collections.emptyList()));
       return Optional.of(Next.EMPTY);
     }
     processInstance.setPrevTaskId(processInstance.getCurrTaskId());
@@ -291,21 +331,33 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
    *
    * @param processInstance Current process instance
    * @param flowStatus Terminal status (COMPLETED, FAILED, SUSPENDED, CANCELLED)
+   * @param taskResult result of current task
    * @throws IllegalStateException if called with non-terminal status
    */
   private void handleInstanceCompletion(
-      ProcessInstance processInstance, ProcessFlowStatus flowStatus) {
+      ProcessInstance processInstance, ProcessFlowStatus flowStatus, TaskResult taskResult) {
     validateTerminalStatus(flowStatus);
+    ExecutionLifecycleManager lifecycleManager =
+        getService(processInstance, ExecutionLifecycleManager.class);
     if (!ProcessUtils.isRootInstance(processInstance)) {
      // Suspend remaining child instances if parent is cancelled/suspended
       if (shouldSuspendChildren(flowStatus)) {
         suspendRemainingChildren(processInstance);
       }
-      signalParentProcess(processInstance, flowStatus);
+      signalParentProcess(processInstance, flowStatus, taskResult);
+    } else {
+      Object output = extractExecutionResult(flowStatus, taskResult, processInstance);
+      lifecycleManager.notifyCompletion(processInstance, toProcessOutcome(flowStatus, output));
     }
-    ExecutionLifecycleManager lifecycleManager =
-        getService(processInstance, ExecutionLifecycleManager.class);
     lifecycleManager.cleanup(processInstance);
+  }
+
+  private ProcessOutcome toProcessOutcome(ProcessFlowStatus status, Object result) {
+    return switch (status) {
+      case COMPLETED -> new ProcessOutcome.Success(result);
+      case FAILED, SUSPENDED -> new ProcessOutcome.Failure(result);
+      default -> throw new IllegalStateException("Unexpected status: " + status);
+    };
   }
 
   private void validateTerminalStatus(ProcessFlowStatus flowStatus) {
@@ -333,7 +385,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     ExecutionLifecycleManager lifecycleManager =
         getService(processInstance, ExecutionLifecycleManager.class);
     for (String childId : instanceIds) {
-      lifecycleManager.signalProcess(processInstance, childId, ProcessFlowStatus.SUSPENDED);
+      lifecycleManager.signalProcess(processInstance, childId, Signal.Stop.suspended());
     }
   }
 
@@ -342,15 +394,15 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
    * and sequential execution patterns.
    */
   private void signalParentProcess(
-      ProcessInstance completedInstance, ProcessFlowStatus flowStatus) {
+      ProcessInstance completedInstance, ProcessFlowStatus flowStatus, TaskResult taskResult) {
     ProcessInstance parentInstance = findParentInstance(completedInstance);
     if (parentInstance == null) {
       return;
     }
     if (completedInstance.isConcurrent()) {
-      handleForkJoinCompletion(completedInstance, parentInstance, flowStatus);
+      handleForkJoinCompletion(completedInstance, parentInstance, flowStatus, taskResult);
     } else {
-      handleSequentialCompletion(completedInstance, parentInstance, flowStatus);
+      handleSequentialCompletion(completedInstance, parentInstance, flowStatus, taskResult);
     }
   }
 
@@ -365,7 +417,8 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
   private void handleForkJoinCompletion(
       ProcessInstance completedInstance,
       ProcessInstance parentInstance,
-      ProcessFlowStatus flowStatus) {
+      ProcessFlowStatus flowStatus,
+      TaskResult taskResult) {
     String joinTaskId = completedInstance.getTerminateAtTaskId();
     if (joinTaskId == null) {
       return;
@@ -378,34 +431,67 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       LOGGER.error("Parent task must be ForkJoinRuntime for concurrent execution");
       return;
     }
-    joinTransitionsRuntime.join(completedInstance, parentInstance, flowStatus);
+    joinTransitionsRuntime.join(completedInstance, parentInstance, flowStatus, taskResult);
   }
 
   private void handleSequentialCompletion(
       ProcessInstance completedInstance,
       ProcessInstance parentInstance,
-      ProcessFlowStatus flowStatus) {
-    Object executionResult = extractExecutionResult(completedInstance, flowStatus);
+      ProcessFlowStatus flowStatus,
+      TaskResult taskResult) {
+    Object executionResult = extractExecutionResult(flowStatus, taskResult, completedInstance);
     ExecutionLifecycleManager lifecycleManager =
         getService(completedInstance, ExecutionLifecycleManager.class);
-    lifecycleManager.signalProcess(completedInstance, parentInstance, flowStatus, executionResult);
+    Signal signal = createSequentialCompletionSignal(flowStatus, executionResult);
+    lifecycleManager.signalProcess(completedInstance, parentInstance, signal);
+  }
+
+  /**
+   * Creates a signal for parent process based on sequential child process completion. Unlike
+   * concurrent (fork-join) completion, sequential completion has simpler signal mapping as there
+   * are no parallel branches to consider.
+   *
+   * <p>Signal mapping: - SUSPENDED -> Stop signal indicating process suspension - FAILED -> Stop
+   * signal with error/failure result - COMPLETED -> Resume signal with execution result
+   *
+   * @param flowStatus The completion status of the sequential child process
+   * @param executionResult Result from child process execution (could be error details or
+   *     completion result)
+   * @return Signal appropriate signal for parent process
+   * @throws IllegalStateException if flow status is not valid for sequential completion
+   */
+  private static Signal createSequentialCompletionSignal(
+      ProcessFlowStatus flowStatus, Object executionResult) {
+    return switch (flowStatus) {
+      case SUSPENDED -> Signal.Stop.suspended();
+      case FAILED -> Signal.Stop.failed(executionResult);
+      case COMPLETED -> Signal.Resume.with(executionResult);
+      default ->
+          throw new IllegalStateException(
+              "invalid process flow status: " + flowStatus + " for sequential completion");
+    };
   }
 
   /**
    * Extracts final result from process execution based on flow status. Returns error variable for
    * FAILED status, output variable otherwise.
    *
-   * @param processInstance Source process instance
    * @param flowStatus Final execution status
+   * @param taskResult result of current task
+   * @param processInstance Source process instance
    * @return Variable value based on status type
    */
-  private Object extractExecutionResult(
-      ProcessInstance processInstance, ProcessFlowStatus flowStatus) {
-    Variable.Type type =
-        flowStatus == ProcessFlowStatus.FAILED ? Variable.Type.ERROR : Variable.Type.OUTPUT;
-    String currTaskId = processInstance.getCurrTaskId();
-    VariableContainer variableContainer = processInstance.getVariableContainer();
-    return variableContainer.getVariable(currTaskId, type);
+  protected Object extractExecutionResult(
+      ProcessFlowStatus flowStatus, TaskResult taskResult, ProcessInstance processInstance) {
+    if (taskResult instanceof TaskResult.ReturnResult result) {
+      return result.getReturnValue();
+    }
+    if (flowStatus == ProcessFlowStatus.FAILED) {
+      String currTaskId = processInstance.getCurrTaskId();
+      VariableContainer variableContainer = processInstance.getVariableContainer();
+      return variableContainer.getVariable(currTaskId, Variable.Type.ERROR);
+    }
+    return null;
   }
 
   private Optional<Next> afterTaskExecution(
@@ -463,7 +549,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     ProcessFlowStatus flowStatus = processFlowResult.getFlowStatus();
     return switch (flowStatus) {
       case COMPLETED, FAILED, SUSPENDED -> {
-        handleInstanceCompletion(processInstance, flowStatus);
+        handleInstanceCompletion(processInstance, flowStatus, processFlowResult.getTaskResult());
         yield Next.EMPTY;
       }
       default -> processFlowResult::getNextTransitions;
