@@ -7,12 +7,14 @@
 */
 package com.upo.orchestrator.engine.impl.rt;
 
+import java.io.Closeable;
 import java.util.*;
 
 import com.upo.orchestrator.api.domain.TransitionType;
 import com.upo.orchestrator.engine.*;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.utilities.ds.CollectionUtils;
+import com.upo.utilities.ds.IOUtils;
 import com.upo.utilities.ds.Pair;
 
 public abstract class IteratingRuntime extends AbstractTaskOrchestrationRuntime {
@@ -34,8 +36,7 @@ public abstract class IteratingRuntime extends AbstractTaskOrchestrationRuntime 
    // Get or initialize iteration state
     Iterator<?> iterator = getOrCreateIterator(processInstance, variables);
     if (iterator == null) {
-      return TaskResult.ContinueWithTransitions.with(
-          variables, findCompletionTransition(processInstance));
+      return handleIterationComplete(processInstance, null, variables);
     }
 
    // Process next iteration if available
@@ -44,7 +45,7 @@ public abstract class IteratingRuntime extends AbstractTaskOrchestrationRuntime 
     }
 
    // Handle iteration completion
-    return handleIterationComplete(processInstance, variables);
+    return handleIterationComplete(processInstance, iterator, variables);
   }
 
   protected abstract Object updateState(
@@ -75,10 +76,14 @@ public abstract class IteratingRuntime extends AbstractTaskOrchestrationRuntime 
 
   /** Handles completion of iteration by finding the default transition. */
   private TaskResult handleIterationComplete(
-      ProcessInstance processInstance, List<Variable> variables) {
-    List<Transition> completionTransition = findCompletionTransition(processInstance);
+      ProcessInstance processInstance, Iterator<?> iterator, List<Variable> variables) {
+    if (iterator instanceof Closeable closeable) {
+      IOUtils.closeQuietly(closeable);
+    }
+    variables.add(toTransientVariable(null));
     variables.add(toStateVariable(null));
-    return TaskResult.ContinueWithTransitions.with(variables, completionTransition);
+    return TaskResult.ContinueWithTransitions.with(
+        variables, findCompletionTransition(processInstance));
   }
 
   /**
@@ -103,8 +108,7 @@ public abstract class IteratingRuntime extends AbstractTaskOrchestrationRuntime 
    // Find next transition
     List<Transition> nextTransition = findIterationTransition(processInstance, newVariables);
     if (nextTransition.isEmpty()) {
-      return TaskResult.ContinueWithTransitions.with(
-          variables, findCompletionTransition(processInstance));
+      return handleIterationComplete(processInstance, iterator, variables);
     }
     return TaskResult.ContinueWithTransitions.with(newVariables, nextTransition);
   }
