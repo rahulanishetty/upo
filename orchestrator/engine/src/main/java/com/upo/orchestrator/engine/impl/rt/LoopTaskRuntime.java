@@ -17,9 +17,9 @@ import com.upo.utilities.ds.CollectionUtils;
 import com.upo.utilities.ds.IOUtils;
 import com.upo.utilities.ds.Pair;
 
-public abstract class IteratingRuntime extends AbstractTaskOrchestrationRuntime {
+public abstract class LoopTaskRuntime extends AbstractTaskOrchestrationRuntime {
 
-  public IteratingRuntime(ProcessRuntime parent, String taskId) {
+  public LoopTaskRuntime(ProcessRuntime parent, String taskId) {
     super(parent, taskId);
   }
 
