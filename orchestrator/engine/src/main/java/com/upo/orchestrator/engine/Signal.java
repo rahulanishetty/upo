@@ -7,12 +7,25 @@
 */
 package com.upo.orchestrator.engine;
 
+import com.alibaba.fastjson2.annotation.JSONCreator;
+import com.alibaba.fastjson2.annotation.JSONType;
+
+@JSONType(
+    seeAlso = {Signal.Resume.class, Signal.Return.class, Signal.Stop.class},
+    typeKey = "type",
+    orders = {"type"})
 public abstract sealed class Signal {
 
+  private final String type;
   private final ProcessFlowStatus flowStatus;
 
-  public Signal(ProcessFlowStatus flowStatus) {
+  public Signal(String type, ProcessFlowStatus flowStatus) {
+    this.type = type;
     this.flowStatus = flowStatus;
+  }
+
+  public String getType() {
+    return type;
   }
 
   public ProcessFlowStatus getFlowStatus() {
@@ -23,11 +36,13 @@ public abstract sealed class Signal {
    * Signal to resume process execution after a WAIT state. Used when external/async operations
    * complete and process should continue.
    */
+  @JSONType(typeName = "resume")
   public static final class Resume extends Signal {
     private final Object callbackData;
 
+    @JSONCreator(parameterNames = {"callbackData"})
     public Resume(Object callbackData) {
-      super(ProcessFlowStatus.CONTINUE);
+      super("resume", ProcessFlowStatus.CONTINUE);
       this.callbackData = callbackData;
     }
 
@@ -44,12 +59,14 @@ public abstract sealed class Signal {
    * Signal to stop process execution either due to failure or explicit suspension. Carries reason
    * details and determines whether process failed or was suspended.
    */
+  @JSONType(typeName = "stop")
   public static final class Stop extends Signal {
     private final Object callbackData;
 
-    private Stop(ProcessFlowStatus stopStatus, Object callbackData) {
-      super(stopStatus);
-      if (stopStatus != ProcessFlowStatus.FAILED && stopStatus != ProcessFlowStatus.SUSPENDED) {
+    @JSONCreator(parameterNames = {"flowStatus", "callbackData"})
+    public Stop(ProcessFlowStatus flowStatus, Object callbackData) {
+      super("stop", flowStatus);
+      if (flowStatus != ProcessFlowStatus.FAILED && flowStatus != ProcessFlowStatus.SUSPENDED) {
         throw new IllegalArgumentException("Stop signal must use FAILED or SUSPENDED status");
       }
       this.callbackData = callbackData;
@@ -72,11 +89,13 @@ public abstract sealed class Signal {
    * Signal carrying a return value from process execution. Used for explicit process termination
    * with a value.
    */
+  @JSONType(typeName = "return")
   public static final class Return extends Signal {
     private final Object returnValue;
 
+    @JSONCreator(parameterNames = {"returnValue"})
     public Return(Object returnValue) {
-      super(ProcessFlowStatus.COMPLETED);
+      super("return", ProcessFlowStatus.COMPLETED);
       this.returnValue = returnValue;
     }
 
