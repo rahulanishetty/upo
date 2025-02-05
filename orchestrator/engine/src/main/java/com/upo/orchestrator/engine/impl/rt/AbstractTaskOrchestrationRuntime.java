@@ -58,6 +58,12 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       LOGGER.error("process is expected to be in WAIT state");
       return Next.EMPTY;
     }
+    ExecutionLifecycleAuditor lifecycleAuditor =
+        getService(processInstance, ExecutionLifecycleAuditor.class);
+    TaskResult taskResult = processFlowResult.getTaskResult();
+    if (taskResult != null && CollectionUtils.isNotEmpty(taskResult.getVariables())) {
+      lifecycleAuditor.recordVariables(taskResult.getVariables(), this, processInstance);
+    }
     return onTaskCompletion(processInstance, processFlowResult);
   }
 
@@ -534,6 +540,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     ExecutionLifecycleAuditor lifecycleAuditor =
         getService(processInstance, ExecutionLifecycleAuditor.class);
     lifecycleAuditor.afterExecution(this, processInstance);
+    lifecycleAuditor.recordVariables(taskResult.getVariables(), this, processInstance);
     return next;
   }
 
