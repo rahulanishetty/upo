@@ -138,7 +138,7 @@ public class RepositoryServiceImpl<T, ID> implements RepositoryService<T, ID>, R
     return prefix + id;
   }
 
-  private String toKey(ID id) {
+  protected String toKey(ID id) {
     return createKey(codec.serializeId(id));
   }
 

@@ -7,10 +7,7 @@
 */
 package com.upo.orchestrator.engine.impl.distributed;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.models.ProcessInstance;
@@ -69,5 +66,18 @@ public class VariableStoreImpl extends JsonRepositoryServiceImpl<ProcessVariable
     Set<String> members = getRawTemplate().getSetMembers("byInstance/" + processInstance.getId());
     return CollectionUtils.transformToList(
         findByIds(members).values(), processVariable -> processVariable);
+  }
+
+  @Override
+  public void deleteProcessVariables(String processInstanceId) {
+    Set<String> members = getRawTemplate().getSetMembers("byInstance/" + processInstanceId);
+    Set<String> keys = new HashSet<>(members != null ? members.size() + 1 : 1);
+    if (CollectionUtils.isNotEmpty(members)) {
+      keys.add("byInstance/" + processInstanceId);
+      for (String member : members) {
+        keys.add(toKey(member));
+      }
+    }
+    getRawTemplate().deleteMany(keys);
   }
 }

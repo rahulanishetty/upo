@@ -54,6 +54,16 @@ public interface ProcessInstanceStore {
   Optional<ProcessInstance> findById(String id);
 
   /**
+   * Deletes a process instance by its identifier. This permanently removes the process instance and
+   * its associated state.
+   *
+   * @param processInstanceId The unique identifier of the process instance to delete
+   * @return true if removed, false otherwise Note: This is a permanent operation that cannot be
+   *     undone. Ensure the process instance has completed or terminated before deletion.
+   */
+  boolean deleteById(String processInstanceId);
+
+  /**
    * Retrieves a process instance by its identifier if in expected status.
    *
    * @param id unique identifier of the process instance

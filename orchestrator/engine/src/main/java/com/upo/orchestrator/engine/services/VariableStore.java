@@ -61,4 +61,14 @@ public interface VariableStore {
    *     cross-instance communication.
    */
   Collection<Variable> findVariablesForInstance(ProcessInstance processInstance);
+
+  /**
+   * Deletes all variables associated with a process instance. This is typically called during
+   * process cleanup after completion or termination.
+   *
+   * @param processInstanceId The ID of the process instance whose variables should be deleted
+   *     <p>Note: This operation is irreversible. Make sure the process instance is in a terminal
+   *     state before removing its variables.
+   */
+  void deleteProcessVariables(String processInstanceId);
 }

@@ -15,6 +15,7 @@ import org.junit.platform.suite.api.SuiteDisplayName;
 @Suite
 @SuiteDisplayName("Serialization and Deserialization test suite")
 @SelectClasses({
+  LifecycleEventSerializationTest.class,
   SignalSerializationTest.class,
 })
 public class SerDeTestSuite {}

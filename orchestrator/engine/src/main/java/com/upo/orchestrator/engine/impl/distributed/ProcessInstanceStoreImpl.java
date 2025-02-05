@@ -7,10 +7,7 @@
 */
 package com.upo.orchestrator.engine.impl.distributed;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import com.upo.orchestrator.engine.ProcessFlowStatus;
 import com.upo.orchestrator.engine.models.ProcessInstance;
@@ -48,6 +45,13 @@ public class ProcessInstanceStoreImpl extends JsonRepositoryServiceImpl<ProcessI
   public Optional<ProcessInstance> findById(String id, ProcessFlowStatus expectedStatus) {
     return findById(id)
         .filter(processInstance -> Objects.equals(processInstance.getStatus(), expectedStatus));
+  }
+
+  @Override
+  public boolean deleteById(String processInstanceId) {
+    return getRawTemplate()
+            .deleteMany(List.of(toKey(processInstanceId), "waitOnChildren/" + processInstanceId))
+        > 0;
   }
 
   @Override
