@@ -39,7 +39,7 @@ public class StartSubProcessProcessInstanceCallbackBuilder
     return () -> {
       String instanceId = CollectionUtils.getStringValue(callbackData, INSTANCE_ID);
       Object payload = CollectionUtils.getValue(callbackData, PAYLOAD);
-      getExecutionLifecycleManager(processInstance).startInstanceWithPayload(instanceId, payload);
+      getExecutionLifecycleManager(processInstance).startInstance(instanceId, payload);
     };
   }
 

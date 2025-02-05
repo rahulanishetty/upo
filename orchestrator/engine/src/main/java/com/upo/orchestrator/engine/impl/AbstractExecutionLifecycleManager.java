@@ -7,6 +7,8 @@
 */
 package com.upo.orchestrator.engine.impl;
 
+import java.util.Objects;
+
 import com.upo.orchestrator.engine.ProcessOutcome;
 import com.upo.orchestrator.engine.ProcessServices;
 import com.upo.orchestrator.engine.Signal;
@@ -16,12 +18,24 @@ import com.upo.orchestrator.engine.services.ExecutionLifecycleManager;
 import com.upo.orchestrator.engine.services.ProcessInstanceStore;
 import com.upo.orchestrator.engine.services.VariableStore;
 
+/**
+ * Abstract implementation of ExecutionLifecycleManager that converts lifecycle operations into
+ * events for processing. Subclasses need to implement the event handling logic.
+ */
 public abstract class AbstractExecutionLifecycleManager implements ExecutionLifecycleManager {
 
+  /**
+   * Handles lifecycle events. Subclasses must implement this to process different event types.
+   *
+   * @param lifecycleEvent The event to be handled
+   * @throws IllegalArgumentException if event is null
+   */
   protected abstract void handleEvent(LifecycleEvent lifecycleEvent);
 
   @Override
   public void startProcess(String processDefinitionId, Object payload) {
+    Objects.requireNonNull(processDefinitionId, "Process definition ID cannot be null");
+
     LifecycleEvent.StartProcess startProcess = new LifecycleEvent.StartProcess();
     startProcess.setProcessDefinitionId(processDefinitionId);
     startProcess.setPayload(payload);
@@ -29,8 +43,10 @@ public abstract class AbstractExecutionLifecycleManager implements ExecutionLife
   }
 
   @Override
-  public void startInstanceWithPayload(String instanceId, Object payload) {
-    LifecycleEvent.StartProcessInstance startInstance = new LifecycleEvent.StartProcessInstance();
+  public void startInstance(String instanceId, Object payload) {
+    Objects.requireNonNull(instanceId, "Instance ID cannot be null");
+
+    LifecycleEvent.StartExistingInstance startInstance = new LifecycleEvent.StartExistingInstance();
     startInstance.setInstanceId(instanceId);
     startInstance.setPayload(payload);
     handleEvent(startInstance);
@@ -39,12 +55,16 @@ public abstract class AbstractExecutionLifecycleManager implements ExecutionLife
   @Override
   public void signalProcess(
       ProcessInstance processInstance, ProcessInstance targetInstance, Signal signal) {
+    Objects.requireNonNull(targetInstance, "Target instance cannot be null");
     signalProcess(processInstance, targetInstance.getId(), signal);
   }
 
   @Override
   public void signalProcess(
       ProcessInstance processInstance, String targetInstanceId, Signal signal) {
+    Objects.requireNonNull(targetInstanceId, "Target instance ID cannot be null");
+    Objects.requireNonNull(signal, "Signal cannot be null");
+
     LifecycleEvent.SignalProcess signalProcess = new LifecycleEvent.SignalProcess();
     signalProcess.setProcessInstanceId(targetInstanceId);
     signalProcess.setSignal(signal);
@@ -52,21 +72,25 @@ public abstract class AbstractExecutionLifecycleManager implements ExecutionLife
   }
 
   @Override
-  public void continueProcessFromTask(String processInstanceId, String taskId) {
-    LifecycleEvent.ContinueProcessFromTask continueProcessFromTask =
-        new LifecycleEvent.ContinueProcessFromTask();
-    continueProcessFromTask.setProcessInstanceId(processInstanceId);
-    continueProcessFromTask.setTaskId(taskId);
-    handleEvent(continueProcessFromTask);
+  public void executeFromTask(String processInstanceId, String taskId) {
+    Objects.requireNonNull(processInstanceId, "Process instance ID cannot be null");
+    Objects.requireNonNull(taskId, "Task ID cannot be null");
+
+    LifecycleEvent.ExecuteFromTask executeFromTask = new LifecycleEvent.ExecuteFromTask();
+    executeFromTask.setProcessInstanceId(processInstanceId);
+    executeFromTask.setTaskId(taskId);
+    handleEvent(executeFromTask);
   }
 
   @Override
   public void notifyCompletion(ProcessInstance processInstance, ProcessOutcome processOutcome) {
-   // TODO implement this.
+    throw new UnsupportedOperationException("Completion notification not implemented");
   }
 
   @Override
-  public void cleanup(ProcessInstance processInstance) {
+  public void cleanupProcess(ProcessInstance processInstance) {
+    Objects.requireNonNull(processInstance, "Process instance cannot be null");
+
     ProcessServices processServices = processInstance.getProcessEnv().getProcessServices();
     VariableStore variableStore = processServices.getService(VariableStore.class);
     variableStore.deleteProcessVariables(processInstance.getId());

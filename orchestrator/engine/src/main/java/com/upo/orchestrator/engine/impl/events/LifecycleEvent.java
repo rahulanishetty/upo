@@ -10,11 +10,16 @@ package com.upo.orchestrator.engine.impl.events;
 import com.alibaba.fastjson2.annotation.JSONType;
 import com.upo.orchestrator.engine.Signal;
 
+/**
+ * Base class for process lifecycle events that represent different execution control operations.
+ * Each event type corresponds to a specific process control action and includes a partition key for
+ * distributed processing.
+ */
 @JSONType(
     seeAlso = {
       LifecycleEvent.StartProcess.class,
-      LifecycleEvent.ContinueProcessFromTask.class,
-      LifecycleEvent.StartProcessInstance.class,
+      LifecycleEvent.ExecuteFromTask.class,
+      LifecycleEvent.StartExistingInstance.class,
       LifecycleEvent.SignalProcess.class,
     },
     typeKey = "type",
@@ -31,6 +36,15 @@ public abstract class LifecycleEvent {
     return type;
   }
 
+  /**
+   * Returns the partition key for distributed processing of this event. Different event types use
+   * different partition keys to ensure related operations are processed by the same partition.
+   *
+   * @return String partition key for this event
+   */
+  public abstract String getPartitionKey();
+
+  /** Event for starting a new process execution with a process definition. */
   @JSONType(typeName = "start_process")
   public static class StartProcess extends LifecycleEvent {
     private String processDefinitionId;
@@ -55,15 +69,24 @@ public abstract class LifecycleEvent {
     public void setPayload(Object payload) {
       this.payload = payload;
     }
+
+    @Override
+    public String getPartitionKey() {
+      return processDefinitionId;
+    }
   }
 
-  @JSONType(typeName = "start_process_instance")
-  public static class StartProcessInstance extends LifecycleEvent {
+  /**
+   * Event for starting a new process instance with a specific ID. Unlike StartProcess, this allows
+   * to start process with a pre-created instance
+   */
+  @JSONType(typeName = "start_instance")
+  public static class StartExistingInstance extends LifecycleEvent {
     private String instanceId;
     private Object payload;
 
-    public StartProcessInstance() {
-      super("start_process_instance");
+    public StartExistingInstance() {
+      super("start_instance");
     }
 
     public String getInstanceId() {
@@ -81,15 +104,24 @@ public abstract class LifecycleEvent {
     public void setPayload(Object payload) {
       this.payload = payload;
     }
+
+    @Override
+    public String getPartitionKey() {
+      return instanceId;
+    }
   }
 
-  @JSONType(typeName = "continue_process_from_task")
-  public static class ContinueProcessFromTask extends LifecycleEvent {
+  /**
+   * Event for executing a process from a specific task. Used to initiate execution at a given task
+   * rather than from process start.
+   */
+  @JSONType(typeName = "execute_from_task")
+  public static class ExecuteFromTask extends LifecycleEvent {
     private String processInstanceId;
     private String taskId;
 
-    public ContinueProcessFromTask() {
-      super("continue_process_from_task");
+    public ExecuteFromTask() {
+      super("execute_from_task");
     }
 
     public String getProcessInstanceId() {
@@ -107,8 +139,17 @@ public abstract class LifecycleEvent {
     public void setTaskId(String taskId) {
       this.taskId = taskId;
     }
+
+    @Override
+    public String getPartitionKey() {
+      return processInstanceId;
+    }
   }
 
+  /**
+   * Event for sending a signal to a process instance. Used for inter-process communication and
+   * state transitions.
+   */
   @JSONType(typeName = "signal_process")
   public static class SignalProcess extends LifecycleEvent {
     private String processInstanceId;
@@ -132,6 +173,11 @@ public abstract class LifecycleEvent {
 
     public void setSignal(Signal signal) {
       this.signal = signal;
+    }
+
+    @Override
+    public String getPartitionKey() {
+      return processInstanceId;
     }
   }
 }

@@ -313,8 +313,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       if (saveProcessInstance(processInstance, ProcessFlowStatus.CONTINUE)) {
         ExecutionLifecycleManager executionLifecycleManager =
             getService(processInstance, ExecutionLifecycleManager.class);
-        executionLifecycleManager.continueProcessFromTask(
-            processInstance.getId(), this.getTaskId());
+        executionLifecycleManager.executeFromTask(processInstance.getId(), this.getTaskId());
       }
       return Optional.of(Next.EMPTY);
     }
@@ -365,7 +364,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       Object output = extractExecutionResult(flowStatus, taskResult, processInstance);
       lifecycleManager.notifyCompletion(processInstance, toProcessOutcome(flowStatus, output));
     }
-    lifecycleManager.cleanup(processInstance);
+    lifecycleManager.cleanupProcess(processInstance);
   }
 
   private ProcessOutcome toProcessOutcome(ProcessFlowStatus status, Object result) {

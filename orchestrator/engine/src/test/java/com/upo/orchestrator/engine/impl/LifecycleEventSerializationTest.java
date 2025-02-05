@@ -49,7 +49,7 @@ public class LifecycleEventSerializationTest {
   @Test
   void testStartProcessInstanceSerialization() {
    // Create event
-    LifecycleEvent.StartProcessInstance event = new LifecycleEvent.StartProcessInstance();
+    LifecycleEvent.StartExistingInstance event = new LifecycleEvent.StartExistingInstance();
     event.setInstanceId("instance-1");
     event.setPayload(Map.of("data", "test"));
 
@@ -57,16 +57,16 @@ public class LifecycleEventSerializationTest {
     String json = JSON.toJSONString(event);
 
    // Verify JSON structure
-    assertTrue(json.contains("\"type\":\"start_process_instance\""));
+    assertTrue(json.contains("\"type\":\"start_instance\""));
     assertTrue(json.contains("\"instanceId\":\"instance-1\""));
     assertTrue(json.contains("\"payload\":{\"data\":\"test\"}"));
 
    // Deserialize and verify
     LifecycleEvent deserialized = JSON.parseObject(json, LifecycleEvent.class);
-    assertInstanceOf(LifecycleEvent.StartProcessInstance.class, deserialized);
-    LifecycleEvent.StartProcessInstance typedEvent =
-        (LifecycleEvent.StartProcessInstance) deserialized;
-    assertEquals("start_process_instance", typedEvent.getType());
+    assertInstanceOf(LifecycleEvent.StartExistingInstance.class, deserialized);
+    LifecycleEvent.StartExistingInstance typedEvent =
+        (LifecycleEvent.StartExistingInstance) deserialized;
+    assertEquals("start_instance", typedEvent.getType());
     assertEquals("instance-1", typedEvent.getInstanceId());
     @SuppressWarnings("unchecked")
     Map<String, String> payload = (Map<String, String>) typedEvent.getPayload();
@@ -76,7 +76,7 @@ public class LifecycleEventSerializationTest {
   @Test
   void testContinueProcessFromTaskSerialization() {
    // Create event
-    LifecycleEvent.ContinueProcessFromTask event = new LifecycleEvent.ContinueProcessFromTask();
+    LifecycleEvent.ExecuteFromTask event = new LifecycleEvent.ExecuteFromTask();
     event.setProcessInstanceId("instance-1");
     event.setTaskId("task-1");
 
@@ -84,16 +84,15 @@ public class LifecycleEventSerializationTest {
     String json = JSON.toJSONString(event);
 
    // Verify JSON structure
-    assertTrue(json.contains("\"type\":\"continue_process_from_task\""));
+    assertTrue(json.contains("\"type\":\"execute_from_task\""));
     assertTrue(json.contains("\"processInstanceId\":\"instance-1\""));
     assertTrue(json.contains("\"taskId\":\"task-1\""));
 
    // Deserialize and verify
     LifecycleEvent deserialized = JSON.parseObject(json, LifecycleEvent.class);
-    assertInstanceOf(LifecycleEvent.ContinueProcessFromTask.class, deserialized);
-    LifecycleEvent.ContinueProcessFromTask typedEvent =
-        (LifecycleEvent.ContinueProcessFromTask) deserialized;
-    assertEquals("continue_process_from_task", typedEvent.getType());
+    assertInstanceOf(LifecycleEvent.ExecuteFromTask.class, deserialized);
+    LifecycleEvent.ExecuteFromTask typedEvent = (LifecycleEvent.ExecuteFromTask) deserialized;
+    assertEquals("execute_from_task", typedEvent.getType());
     assertEquals("instance-1", typedEvent.getProcessInstanceId());
     assertEquals("task-1", typedEvent.getTaskId());
   }

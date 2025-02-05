@@ -60,7 +60,7 @@ public class StartForkedInstancesProcessInstanceCallbackBuilder
         for (Map<String, Object> instance : instances) {
           String instanceId = CollectionUtils.getStringValue(instance, INSTANCE_ID);
           String taskId = CollectionUtils.getStringValue(instance, TASK_ID);
-          executionLifecycleManager.continueProcessFromTask(instanceId, taskId);
+          executionLifecycleManager.executeFromTask(instanceId, taskId);
         }
       }
     };

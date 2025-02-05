@@ -110,8 +110,7 @@ public class ForkTaskRuntime extends AbstractTaskOrchestrationRuntime {
     ExecutionLifecycleManager lifecycleManager =
         getService(parentInstance, ExecutionLifecycleManager.class);
     for (ProcessInstance forkedInstance : forkedInstances) {
-      lifecycleManager.continueProcessFromTask(
-          forkedInstance.getId(), forkedInstance.getCurrTaskId());
+      lifecycleManager.executeFromTask(forkedInstance.getId(), forkedInstance.getCurrTaskId());
     }
   }
 
