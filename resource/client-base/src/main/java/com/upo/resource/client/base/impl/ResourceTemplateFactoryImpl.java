@@ -8,6 +8,7 @@
 package com.upo.resource.client.base.impl;
 
 import java.io.Closeable;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,6 +18,7 @@ import com.upo.resource.client.base.models.PartitionResourceConfig;
 import com.upo.resource.client.base.models.ResourceCategory;
 import com.upo.resource.client.base.models.ResourceConfig;
 import com.upo.resource.client.base.models.ResourceType;
+import com.upo.utilities.ds.IdentityKey;
 
 /**
  * Abstract implementation of a resource template factory that extends the resource client factory.
@@ -36,7 +38,8 @@ public abstract class ResourceTemplateFactoryImpl<
 
   private final ResourceCategory resourceCategory;
   private final Class<TemplateConfig> templateConfigClz;
-  private final Map<String, Optional<Template>> templateCache;
+  private final Map<String, Optional<TemplateConfig>> templateConfigCache;
+  private final Map<IdentityKey<TemplateConfig>, Optional<Template>> templateCache;
 
   public ResourceTemplateFactoryImpl(
       ResourceConfigProvider resourceConfigProvider,
@@ -46,6 +49,7 @@ public abstract class ResourceTemplateFactoryImpl<
     super(resourceConfigProvider, serverConfigClz);
     this.resourceCategory = resourceCategory;
     this.templateConfigClz = templateConfigClz;
+    this.templateConfigCache = new ConcurrentHashMap<>();
     this.templateCache = new ConcurrentHashMap<>();
   }
 
@@ -65,18 +69,34 @@ public abstract class ResourceTemplateFactoryImpl<
 
   @Override
   public Optional<Template> getTemplate(ResourceType resourceType, String partitionKey) {
+    String partitionId = createPartitionResourceId(resourceType, partitionKey);
+    return templateConfigCache
+        .computeIfAbsent(partitionId, this::lookupTemplateConfig)
+        .flatMap(this::getOrCreateTemplateFromConfig);
+  }
+
+  @Override
+  public void close() throws IOException {
+    super.close();
+    templateConfigCache.clear();
+    templateCache.clear();
+  }
+
+  private Optional<TemplateConfig> lookupTemplateConfig(String resourceId) {
+    checkNotClosed();
+    return Optional.ofNullable(resourceConfigProvider.getConfig(resourceId, templateConfigClz));
+  }
+
+  private Optional<Template> getOrCreateTemplateFromConfig(TemplateConfig config) {
     return templateCache.computeIfAbsent(
-        createPartitionResourceId(resourceType, partitionKey),
-        partitionResourceId -> {
-          TemplateConfig config =
-              resourceConfigProvider.getConfig(partitionResourceId, templateConfigClz);
-          if (config == null) {
-            return Optional.empty();
-          }
-          String resourceIdSuffix = config.getResourceIdSuffix();
-          return getClient(resourceCategory, resourceIdSuffix)
-              .map(client -> createTemplate(client, config));
-        });
+        IdentityKey.of(config), key -> createTemplate(key.value()));
+  }
+
+  private Optional<Template> createTemplate(TemplateConfig config) {
+    checkNotClosed();
+    String resourceIdSuffix = config.getResourceIdSuffix();
+    return getClient(resourceCategory, resourceIdSuffix)
+        .map(client -> createTemplate(client, config));
   }
 
   /**

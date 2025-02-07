@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ public abstract class ResourceClientFactoryImpl<
   protected final ResourceConfigProvider resourceConfigProvider;
   private final Map<String, Optional<Client>> clientCache;
   private final Class<Config> configClz;
+  private final AtomicBoolean closed = new AtomicBoolean(false);
 
   public ResourceClientFactoryImpl(
       ResourceConfigProvider resourceConfigProvider, Class<Config> configClz) {
@@ -60,6 +62,7 @@ public abstract class ResourceClientFactoryImpl<
     return clientCache.computeIfAbsent(
         createServerResourceId(resourceCategory, resourceId),
         serverResourceId -> {
+          checkNotClosed();
           Config config = resourceConfigProvider.getConfig(serverResourceId, configClz);
           if (config == null) {
             return Optional.empty();
@@ -71,6 +74,9 @@ public abstract class ResourceClientFactoryImpl<
 
   @Override
   public void close() throws IOException {
+    if (!closed.compareAndSet(false, true)) {
+      return;// Already closed
+    }
     for (Map.Entry<String, Optional<Client>> entry : clientCache.entrySet()) {
       entry
           .getValue()
@@ -82,6 +88,13 @@ public abstract class ResourceClientFactoryImpl<
                   LOGGER.error("Failed to close client for resource: {}", entry.getKey(), eX);
                 }
               });
+    }
+    clientCache.clear();
+  }
+
+  protected void checkNotClosed() {
+    if (closed.get()) {
+      throw new IllegalStateException("Factory is closed");
     }
   }
 
