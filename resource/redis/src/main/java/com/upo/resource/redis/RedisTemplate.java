@@ -273,6 +273,15 @@ public interface RedisTemplate {
   Optional<Long> getTimeToLive(String id);
 
   /**
+   * Publishes a message to a Redis pub/sub channel. Messages published to a channel are delivered
+   * to all active subscribers of that channel.
+   *
+   * @param channelName The name of the channel to publish to
+   * @param message The message payload to publish
+   */
+  void publish(String channelName, String message);
+
+  /**
    * Returns the namespace prefix used for all Redis keys managed by this template. The namespace
    * helps prevent key collisions and organizes keys by their domain.
    *

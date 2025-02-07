@@ -7,10 +7,57 @@
 */
 package com.upo.orchestrator.engine;
 
+import com.alibaba.fastjson2.annotation.JSONCreator;
+import com.alibaba.fastjson2.annotation.JSONType;
+
 /** Represents the final outcome of a process execution. */
+@JSONType(
+    typeKey = "type",
+    seeAlso = {ProcessOutcome.Success.class, ProcessOutcome.Failure.class},
+    orders = {"type"})
 public interface ProcessOutcome {
 
-  record Success(Object result) implements ProcessOutcome {}
+  String getType();
 
-  record Failure(Object failure) implements ProcessOutcome {}
+  @SuppressWarnings("ClassCanBeRecord")
+  @JSONType(typeName = "SUCCESS")
+  class Success implements ProcessOutcome {
+
+    private final Object result;
+
+    @JSONCreator(parameterNames = {"result"})
+    public Success(Object result) {
+      this.result = result;
+    }
+
+    public Object getResult() {
+      return result;
+    }
+
+    @Override
+    public String getType() {
+      return "SUCCESS";
+    }
+  }
+
+  @SuppressWarnings("ClassCanBeRecord")
+  @JSONType(typeName = "FAILURE")
+  class Failure implements ProcessOutcome {
+
+    private final Object failure;
+
+    @JSONCreator(parameterNames = {"failure"})
+    public Failure(Object failure) {
+      this.failure = failure;
+    }
+
+    public Object getFailure() {
+      return failure;
+    }
+
+    @Override
+    public String getType() {
+      return "FAILURE";
+    }
+  }
 }

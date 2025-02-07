@@ -10,6 +10,7 @@ package com.upo.orchestrator.engine.models;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.upo.orchestrator.engine.ProcessDetails;
 import com.upo.orchestrator.engine.ProcessFlowStatus;
+import com.upo.orchestrator.engine.ProcessOutcomeSink;
 import com.upo.orchestrator.engine.VariableContainer;
 
 /**
@@ -94,6 +95,10 @@ public class ProcessInstance {
   /** input passed for this instance */
   @JSONField(serialize = false, deserialize = false)
   private Object input;
+
+  /** outcome sink for this instance */
+  @JSONField(serialize = false, deserialize = false)
+  private ProcessOutcomeSink sink;
 
   public String getId() {
     return id;
@@ -282,6 +287,14 @@ public class ProcessInstance {
 
   public void setInput(Object input) {
     this.input = input;
+  }
+
+  public ProcessOutcomeSink getSink() {
+    return sink;
+  }
+
+  public void setSink(ProcessOutcomeSink sink) {
+    this.sink = sink;
   }
 
   public ProcessDetails toProcessDetails() {

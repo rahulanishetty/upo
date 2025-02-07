@@ -246,6 +246,13 @@ public class RedisTemplateImpl implements RedisTemplate, WithRedisCommands {
   }
 
   @Override
+  public void publish(String channelName, String message) {
+    try (var commands = getCommands()) {
+      commands.publish(createId(channelName), message);
+    }
+  }
+
+  @Override
   public boolean updateExpiry(String id, long expirySeconds) {
     try (var commands = getCommands()) {
       return Boolean.TRUE.equals(commands.expire(createId(id), expirySeconds));

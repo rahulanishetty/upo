@@ -10,6 +10,7 @@ package com.upo.orchestrator.engine.impl;
 import java.util.Objects;
 
 import com.upo.orchestrator.engine.ProcessOutcome;
+import com.upo.orchestrator.engine.ProcessOutcomeSink;
 import com.upo.orchestrator.engine.ProcessServices;
 import com.upo.orchestrator.engine.Signal;
 import com.upo.orchestrator.engine.impl.events.LifecycleEvent;
@@ -84,7 +85,11 @@ public abstract class AbstractExecutionLifecycleManager implements ExecutionLife
 
   @Override
   public void notifyCompletion(ProcessInstance processInstance, ProcessOutcome processOutcome) {
-    throw new UnsupportedOperationException("Completion notification not implemented");
+    ProcessOutcomeSink sink = processInstance.getSink();
+    if (sink == null) {
+      return;
+    }
+    sink.onOutcome(processInstance, processOutcome);
   }
 
   @Override
