@@ -10,7 +10,6 @@ package com.upo.orchestrator.engine.impl;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import com.alibaba.fastjson2.annotation.JSONType;
 import com.upo.orchestrator.engine.ProcessOutcome;
 import com.upo.orchestrator.engine.ProcessOutcomeSink;
 import com.upo.orchestrator.engine.models.ProcessInstance;
@@ -19,7 +18,6 @@ import com.upo.orchestrator.engine.models.ProcessInstance;
  * A sink that completes a provided future with the process outcome. Used for synchronous process
  * execution where caller awaits the outcome.
  */
-@JSONType(typeName = "PROMISE")
 public class PromiseCompletingOutcomeSink extends ProcessOutcomeSink {
 
   private final CompletableFuture<ProcessOutcome> promise;

@@ -8,13 +8,12 @@
 package com.upo.orchestrator.engine;
 
 import com.alibaba.fastjson2.annotation.JSONType;
-import com.upo.orchestrator.engine.impl.PromiseCompletingOutcomeSink;
 import com.upo.orchestrator.engine.impl.RedisBackedOutcomeSink;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 
 /** Base interface for process outcome sinks with serialization awareness. */
 @JSONType(
-    seeAlso = {RedisBackedOutcomeSink.class, PromiseCompletingOutcomeSink.class},
+    seeAlso = {RedisBackedOutcomeSink.class},
     typeKey = "type",
     orders = {"type"})
 public abstract class ProcessOutcomeSink {
