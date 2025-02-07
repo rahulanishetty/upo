@@ -28,6 +28,11 @@ public class TestRequestContext implements RequestContext {
   }
 
   @Override
+  public RequestContext copy() {
+    return new TestRequestContext(partitionKey);
+  }
+
+  @Override
   public Map<String, Object> toMap() {
     return new HashMap<>(contextData);
   }

@@ -29,6 +29,14 @@ public interface RequestContext {
   String getPartitionKey();
 
   /**
+   * Creates a deep copy of this request context. A new context is created with copied values to
+   * maintain isolation between different execution scopes.
+   *
+   * @return A new RequestContext instance with copied values
+   */
+  RequestContext copy();
+
+  /**
    * Converts the request context to a map representation. This map typically includes: - Request
    * headers - Security context - Correlation IDs - Tenant information - Request metadata - User
    * context
