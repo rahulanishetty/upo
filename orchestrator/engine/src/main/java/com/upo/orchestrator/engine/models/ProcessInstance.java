@@ -12,6 +12,8 @@ import com.upo.orchestrator.engine.ProcessDetails;
 import com.upo.orchestrator.engine.ProcessFlowStatus;
 import com.upo.orchestrator.engine.ProcessOutcomeSink;
 import com.upo.orchestrator.engine.VariableContainer;
+import com.upo.orchestrator.engine.impl.VariableContainerImpl;
+import com.upo.utilities.json.Utils;
 
 /**
  * Represents a single execution of a process. Maintains the state and context of process execution
@@ -99,6 +101,45 @@ public class ProcessInstance {
   /** outcome sink for this instance */
   @JSONField(serialize = false, deserialize = false)
   private ProcessOutcomeSink sink;
+
+  public ProcessInstance() {}
+
+  public ProcessInstance(ProcessInstance processInstance) {
+    this.id = processInstance.id;
+    this.rootId = processInstance.rootId;
+    this.parentId = processInstance.parentId;
+    this.processId = processInstance.processId;
+    this.processSnapshotId = processInstance.processSnapshotId;
+    this.processVersion = processInstance.processVersion;
+    this.executionStrategy = processInstance.executionStrategy;
+    this.concurrent = processInstance.concurrent;
+    this.terminateAtTaskId = processInstance.terminateAtTaskId;
+    this.startTime = processInstance.startTime;
+    this.endTime = processInstance.endTime;
+    this.status = processInstance.status;
+    this.currTaskId = processInstance.currTaskId;
+    this.taskCount = processInstance.taskCount;
+    this.taskCountSinceLastFlush = 0L;
+    this.currentTaskStartTime = processInstance.currentTaskStartTime;
+    this.currentTaskSignalTime = processInstance.currentTaskSignalTime;
+    this.currentTaskEndTime = processInstance.currentTaskEndTime;
+    this.currentTaskInvocationTime = processInstance.currentTaskInvocationTime;
+    this.prevTaskId = processInstance.prevTaskId;
+    this.processEnv = processInstance.processEnv.copy();
+    VariableContainerImpl container = new VariableContainerImpl();
+    container.addProcessEnvVariables(this.processEnv);
+    this.variableContainer = container;
+    this.input = processInstance.input;
+    if (processInstance.sink != null) {
+      if (processInstance.sink.isSerializable()) {
+        this.sink = Utils.fromJson(Utils.toJson(processInstance.sink), ProcessOutcomeSink.class);
+      } else {
+        this.sink = processInstance.sink;
+      }
+    } else {
+      this.sink = null;
+    }
+  }
 
   public String getId() {
     return id;
