@@ -14,9 +14,9 @@ import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.upo.orchestrator.engine.LifecycleEventHandler;
 import com.upo.orchestrator.engine.impl.AbstractExecutionLifecycleManager;
 import com.upo.orchestrator.engine.impl.events.LifecycleEvent;
+import com.upo.orchestrator.engine.services.LifecycleEventHandler;
 import com.upo.utilities.context.RequestContext;
 
 import jakarta.inject.Inject;

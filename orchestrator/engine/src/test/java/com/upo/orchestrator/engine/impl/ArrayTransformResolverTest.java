@@ -24,10 +24,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.upo.orchestrator.engine.InputValueResolver;
 import com.upo.orchestrator.engine.VariableContainer;
 import com.upo.orchestrator.engine.impl.value.ArrayTransformResolver;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.orchestrator.engine.services.InputValueResolver;
 import com.upo.utilities.json.path.JsonPath;
 
 public class ArrayTransformResolverTest {

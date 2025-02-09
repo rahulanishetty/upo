@@ -11,12 +11,12 @@ import java.util.Objects;
 
 import com.upo.orchestrator.engine.ProcessOutcome;
 import com.upo.orchestrator.engine.ProcessOutcomeSink;
-import com.upo.orchestrator.engine.ProcessServices;
 import com.upo.orchestrator.engine.Signal;
 import com.upo.orchestrator.engine.impl.events.LifecycleEvent;
 import com.upo.orchestrator.engine.models.ProcessInstance;
 import com.upo.orchestrator.engine.services.ExecutionLifecycleManager;
 import com.upo.orchestrator.engine.services.ProcessInstanceStore;
+import com.upo.orchestrator.engine.services.ProcessServices;
 import com.upo.orchestrator.engine.services.VariableStore;
 
 /**

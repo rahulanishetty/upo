@@ -7,7 +7,7 @@
 */
 package com.upo.orchestrator.engine.impl;
 
-import com.upo.orchestrator.engine.InputValueResolver;
+import com.upo.orchestrator.engine.services.InputValueResolver;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;

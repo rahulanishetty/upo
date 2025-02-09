@@ -16,10 +16,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import com.upo.orchestrator.engine.InputValueResolver;
 import com.upo.orchestrator.engine.ResolvableValue;
 import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.orchestrator.engine.services.InputValueResolver;
 import com.upo.utilities.ds.Pair;
 import com.upo.utilities.filter.api.*;
 import com.upo.utilities.filter.impl.FilterEvaluator;

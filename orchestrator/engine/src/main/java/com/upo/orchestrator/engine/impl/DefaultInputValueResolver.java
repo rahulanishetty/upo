@@ -9,9 +9,9 @@ package com.upo.orchestrator.engine.impl;
 
 import java.util.*;
 
-import com.upo.orchestrator.engine.InputValueResolver;
 import com.upo.orchestrator.engine.ResolvableValue;
 import com.upo.orchestrator.engine.impl.value.*;
+import com.upo.orchestrator.engine.services.InputValueResolver;
 
 import jakarta.inject.Singleton;
 

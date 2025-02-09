@@ -12,8 +12,8 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.upo.orchestrator.engine.ExecutionStrategy;
-import com.upo.orchestrator.engine.ProcessServiceRegistry;
-import com.upo.orchestrator.engine.ProcessServices;
+import com.upo.orchestrator.engine.services.ProcessServiceRegistry;
+import com.upo.orchestrator.engine.services.ProcessServices;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;

@@ -10,7 +10,7 @@ package com.upo.orchestrator.engine.impl;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.upo.orchestrator.engine.ProcessServices;
+import com.upo.orchestrator.engine.services.ProcessServices;
 
 public class ProcessServicesImpl implements ProcessServices {
 

@@ -12,10 +12,10 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.upo.orchestrator.engine.InputValueResolver;
 import com.upo.orchestrator.engine.ResolvableValue;
 import com.upo.orchestrator.engine.Variable;
 import com.upo.orchestrator.engine.models.ProcessInstance;
+import com.upo.orchestrator.engine.services.InputValueResolver;
 import com.upo.utilities.ds.Pair;
 import com.upo.utilities.filter.impl.ComparableValue;
 import com.upo.utilities.filter.impl.Field;
