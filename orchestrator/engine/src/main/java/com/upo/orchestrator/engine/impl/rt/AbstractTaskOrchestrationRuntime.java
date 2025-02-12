@@ -58,12 +58,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
       LOGGER.error("process is expected to be in WAIT state");
       return Next.EMPTY;
     }
-    ExecutionLifecycleAuditor lifecycleAuditor =
-        getService(processInstance, ExecutionLifecycleAuditor.class);
-    TaskResult taskResult = processFlowResult.getTaskResult();
-    if (taskResult != null && CollectionUtils.isNotEmpty(taskResult.getVariables())) {
-      lifecycleAuditor.recordVariables(taskResult.getVariables(), this, processInstance);
-    }
+    recordTaskVariables(processInstance, processFlowResult.getTaskResult());
     return onTaskCompletion(processInstance, processFlowResult);
   }
 
@@ -250,6 +245,22 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     }
 
     return defaultTransition;
+  }
+
+  /**
+   * Records task execution variables for auditing purposes. If task result contains variables,
+   * sends them to auditor for tracking lifecycle events and variable changes.
+   *
+   * @param processInstance Process instance being executed
+   * @param taskResult Result containing variables to record, may be null
+   */
+  private void recordTaskVariables(ProcessInstance processInstance, TaskResult taskResult) {
+    if (taskResult == null || CollectionUtils.isEmpty(taskResult.getVariables())) {
+      return;
+    }
+    ExecutionLifecycleAuditor lifecycleAuditor =
+        getService(processInstance, ExecutionLifecycleAuditor.class);
+    lifecycleAuditor.recordVariables(taskResult.getVariables(), this, processInstance);
   }
 
   private static VariableContainer createTemporaryScopeWithTaskResults(
@@ -539,7 +550,7 @@ public abstract class AbstractTaskOrchestrationRuntime extends AbstractTaskRunti
     ExecutionLifecycleAuditor lifecycleAuditor =
         getService(processInstance, ExecutionLifecycleAuditor.class);
     lifecycleAuditor.afterExecution(this, processInstance);
-    lifecycleAuditor.recordVariables(taskResult.getVariables(), this, processInstance);
+    recordTaskVariables(processInstance, taskResult);
     return next;
   }
 
