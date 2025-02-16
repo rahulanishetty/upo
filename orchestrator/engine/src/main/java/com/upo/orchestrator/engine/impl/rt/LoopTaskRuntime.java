@@ -153,7 +153,7 @@ public abstract class LoopTaskRuntime extends AbstractTaskOrchestrationRuntime {
   }
 
   /** Finds the default transition for iteration completion. */
-  private List<Transition> findCompletionTransition(ProcessInstance processInstance) {
+  public List<Transition> findCompletionTransition(ProcessInstance processInstance) {
     return resolveTransitions(processInstance, TaskResult.Continue.with(Collections.emptyList()))
         .stream()
         .filter(t -> t.getType() == TransitionType.DEFAULT)
