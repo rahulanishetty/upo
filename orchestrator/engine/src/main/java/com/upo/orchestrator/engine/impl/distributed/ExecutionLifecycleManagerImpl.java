@@ -11,6 +11,7 @@ import java.util.Optional;
 
 import com.upo.orchestrator.engine.impl.AbstractExecutionLifecycleManager;
 import com.upo.orchestrator.engine.impl.events.LifecycleEvent;
+import com.upo.orchestrator.engine.services.EnvironmentProvider;
 import com.upo.resource.redis.RedisTemplate;
 import com.upo.resource.redis.RedisTemplateFactory;
 import com.upo.utilities.json.Utils;
@@ -28,7 +29,6 @@ import jakarta.inject.Singleton;
 public class ExecutionLifecycleManagerImpl extends AbstractExecutionLifecycleManager {
 
   private static final int DEFAULT_PARTITIONS = 8;
-  private static final String DEFAULT_TIER = "DEFAULT";
 
   private final RedisTemplateFactory redisTemplateFactory;
 
@@ -57,7 +57,8 @@ public class ExecutionLifecycleManagerImpl extends AbstractExecutionLifecycleMan
   }
 
   private RedisTemplate getRedisTemplate() {
-    return redisTemplateFactory.getRedisTemplate(Resources.REDIS, getCurrentTier());
+    return redisTemplateFactory.getRedisTemplate(
+        Resources.REDIS, EnvironmentProvider.getCurrentTier());
   }
 
   private int getMaxPartitions() {
@@ -66,11 +67,5 @@ public class ExecutionLifecycleManagerImpl extends AbstractExecutionLifecycleMan
         .map(Integer::parseInt)
         .filter(p -> p > 0)
         .orElse(DEFAULT_PARTITIONS);
-  }
-
-  private String getCurrentTier() {
-    return Optional.ofNullable(System.getenv("TIER"))
-        .filter(s -> !s.isEmpty())
-        .orElse(DEFAULT_TIER);
   }
 }

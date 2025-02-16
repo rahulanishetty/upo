@@ -8,10 +8,23 @@
 package com.upo.utilities.json;
 
 import java.lang.reflect.Type;
+import java.util.Map;
 
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.TypeReference;
 
 public class Utils {
+
+  public static final Type GENERIC_JSON_MAP_TYPE =
+      new TypeReference<Map<String, Object>>() {}.getType();
+
+  /** Creates a deep copy of an object by serializing to JSON and back. */
+  public static <T> T deepCopyViaJson(Object obj, Type type) {
+    if (obj == null) {
+      return null;
+    }
+    return fromJson(toJson(obj), type);
+  }
 
   public static Object toJsonObject(Object object) {
     if (object == null) {
