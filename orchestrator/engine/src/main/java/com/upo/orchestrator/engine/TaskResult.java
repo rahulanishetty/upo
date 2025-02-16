@@ -95,18 +95,6 @@ public abstract sealed class TaskResult {
         Collection<Variable> variables, List<Transition> transitions) {
       return new ContinueWithTransitions(variables, transitions);
     }
-
-    public static TransitionResolver decorate(TransitionResolver transitionResolver) {
-      return (taskRuntime, instance, result) -> {
-        if (result instanceof ContinueWithTransitions continueWithTransitions) {
-          return continueWithTransitions.getTransitions();
-        }
-        if (transitionResolver == null) {
-          return Collections.emptyList();
-        }
-        return transitionResolver.resolveTransitions(taskRuntime, instance, result);
-      };
-    }
   }
 
   public static final class Fail extends TaskResult {

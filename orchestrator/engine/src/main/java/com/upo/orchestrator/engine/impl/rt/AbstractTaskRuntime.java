@@ -7,6 +7,7 @@
 */
 package com.upo.orchestrator.engine.impl.rt;
 
+import java.util.Collections;
 import java.util.Set;
 
 import com.upo.orchestrator.engine.*;
@@ -65,7 +66,7 @@ public abstract class AbstractTaskRuntime implements TaskRuntime {
   }
 
   public void setOutgoingTransitions(TransitionResolver outgoingTransitions) {
-    this.outgoingTransitions = TaskResult.ContinueWithTransitions.decorate(outgoingTransitions);
+    this.outgoingTransitions = withExplicitTransitions(outgoingTransitions);
   }
 
   protected ProcessVariable toVariable(
@@ -86,5 +87,24 @@ public abstract class AbstractTaskRuntime implements TaskRuntime {
 
   protected ProcessServices getServices(ProcessInstance processInstance) {
     return processInstance.getProcessEnv().getProcessServices();
+  }
+
+  /**
+   * Decorator for TransitionResolver that prioritizes explicit transitions from
+   * ContinueWithTransitions results over resolver-determined transitions.
+   *
+   * @param transitionResolver Base resolver to decorate, may be null
+   * @return Decorated resolver that handles ContinueWithTransitions special case
+   */
+  public static TransitionResolver withExplicitTransitions(TransitionResolver transitionResolver) {
+    return (taskRuntime, instance, result) -> {
+      if (result instanceof TaskResult.ContinueWithTransitions continueWithTransitions) {
+        return continueWithTransitions.getTransitions();
+      }
+      if (transitionResolver == null) {
+        return Collections.emptyList();
+      }
+      return transitionResolver.resolveTransitions(taskRuntime, instance, result);
+    };
   }
 }
