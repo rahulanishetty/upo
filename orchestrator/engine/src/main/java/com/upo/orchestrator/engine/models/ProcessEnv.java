@@ -9,7 +9,6 @@ package com.upo.orchestrator.engine.models;
 
 import java.util.Map;
 
-import com.alibaba.fastjson2.TypeReference;
 import com.alibaba.fastjson2.annotation.JSONField;
 import com.upo.orchestrator.engine.services.ProcessServices;
 import com.upo.utilities.json.Utils;
@@ -104,7 +103,6 @@ public class ProcessEnv {
   }
 
   private static Map<String, Object> copyMap(Map<String, Object> toCopy) {
-    String json = Utils.toJson(toCopy);
-    return Utils.fromJson(json, new TypeReference<Map<String, Object>>() {}.getType());
+    return Utils.deepCopyViaJson(toCopy, Utils.GENERIC_JSON_MAP_TYPE);
   }
 }

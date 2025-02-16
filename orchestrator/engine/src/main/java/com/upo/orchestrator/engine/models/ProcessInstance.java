@@ -132,7 +132,7 @@ public class ProcessInstance {
     this.input = processInstance.input;
     if (processInstance.sink != null) {
       if (processInstance.sink.isSerializable()) {
-        this.sink = Utils.fromJson(Utils.toJson(processInstance.sink), ProcessOutcomeSink.class);
+        this.sink = Utils.deepCopyViaJson(processInstance.sink, ProcessOutcomeSink.class);
       } else {
         this.sink = processInstance.sink;
       }

@@ -113,7 +113,7 @@ public class VariableStoreImpl implements VariableStore {
     copy.setProcessInstanceId(processVariable.getProcessInstanceId());
     copy.setType(processVariable.getType());
     copy.setTaskId(processVariable.getTaskId());
-    copy.setPayload(Utils.fromJson(Utils.toJson(processVariable.getPayload()), Object.class));
+    copy.setPayload(Utils.deepCopyViaJson(processVariable.getPayload(), Object.class));
     return copy;
   }
 }
