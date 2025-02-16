@@ -37,17 +37,6 @@ public class ContinueTaskRuntime extends AbstractTaskOrchestrationRuntime {
   }
 
   @Override
-  public void setOutgoingTransitions(TransitionResolver outgoingTransitions) {
-    super.setOutgoingTransitions(
-        (taskRuntime, instance, result) -> {
-          if (result instanceof TaskResult.ContinueWithTransitions continueWithTransitions) {
-            return continueWithTransitions.getTransitions();
-          }
-          return outgoingTransitions.resolveTransitions(taskRuntime, instance, result);
-        });
-  }
-
-  @Override
   protected TaskResult doExecute(ProcessInstance processInstance) {
     Map<String, Object> continueState = new HashMap<>();
     if (shouldContinueLoop(processInstance)) {

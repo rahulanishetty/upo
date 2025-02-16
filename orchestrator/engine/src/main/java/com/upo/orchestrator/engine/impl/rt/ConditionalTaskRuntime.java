@@ -28,23 +28,6 @@ public class ConditionalTaskRuntime extends AbstractTaskOrchestrationRuntime {
   }
 
   /**
-   * Overrides the transition resolution strategy to handle special cases of conditional execution
-   * results.
-   *
-   * @param outgoingTransitions The base transition resolver
-   */
-  @Override
-  public void setOutgoingTransitions(TransitionResolver outgoingTransitions) {
-    super.setOutgoingTransitions(
-        (taskRuntime, instance, result) -> {
-          if (result instanceof TaskResult.ContinueWithTransitions continueWithTransitions) {
-            return continueWithTransitions.getTransitions();
-          }
-          return outgoingTransitions.resolveTransitions(taskRuntime, instance, result);
-        });
-  }
-
-  /**
    * Executes the conditional logic for this task, evaluating transitions and determining the next
    * execution path.
    *

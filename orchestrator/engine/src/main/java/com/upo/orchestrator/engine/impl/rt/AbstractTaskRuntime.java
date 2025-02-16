@@ -65,7 +65,7 @@ public abstract class AbstractTaskRuntime implements TaskRuntime {
   }
 
   public void setOutgoingTransitions(TransitionResolver outgoingTransitions) {
-    this.outgoingTransitions = outgoingTransitions;
+    this.outgoingTransitions = TaskResult.ContinueWithTransitions.decorate(outgoingTransitions);
   }
 
   protected ProcessVariable toVariable(

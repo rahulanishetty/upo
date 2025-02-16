@@ -35,11 +35,8 @@ public class ForkTaskRuntime extends AbstractTaskOrchestrationRuntime {
 
   public ForkTaskRuntime(ProcessRuntime parent, String taskId) {
     super(parent, taskId);
-    setOutgoingTransitions(
-        (_, _, taskResult) -> {
-          if (taskResult instanceof TaskResult.ContinueWithTransitions continueWithTransitions) {
-            return continueWithTransitions.getTransitions();
-          }
+    super.setOutgoingTransitions(
+        (_, _, _) -> {
           if (joinTaskId == null) {
             return Collections.emptyList();
           }
